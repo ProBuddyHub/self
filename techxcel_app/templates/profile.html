@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2 class="mt-4">Profile</h2>
+
+<!-- Profile Card -->
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title">Email: {{ session.get('user_email') }}</h4>
+    <p class="card-text">
+      <strong>Name:</strong> <span id="name">{{ user.name }}</span><br>
+      <strong>College ID:</strong> <span id="college_id">{{ user.college_id }}</span><br>
+      <strong>WhatsApp:</strong> <span id="whatsapp">{{ user.whatsapp }}</span><br>
+      <strong>User Type:</strong> {{ user.user_type }}<br>
+      <strong>Account Created:</strong> {{ user.created_at }}
+    </p>
+    <button class="btn btn-primary" onclick="showEditForm()">Edit Profile</button>
+  </div>
+</div>
+
+<!-- Edit Form (Hidden Initially) -->
+<div class="card mt-4" id="editForm" style="display: none;">
+  <div class="card-body">
+    <h3 class="card-title">Edit Profile</h3>
+    <form id="profileForm">
+      <div class="mb-3">
+        <label class="form-label">Name:</label>
+        <input type="text" class="form-control" id="edit_name" value="{{ user.name }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">College ID (if from RGUKT):</label>
+        <input type="text" class="form-control" id="edit_college_id" value="{{ user.college_id }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">WhatsApp Number:</label>
+        <input type="text" class="form-control" id="edit_whatsapp" value="{{ user.whatsapp }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Email:</label>
+        <input type="email" class="form-control" id="edit_email" value="{{ user.email }}">
+      </div>
+      <button type="submit" class="btn btn-success">Update</button>
+      <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  function showEditForm() {
+    document.querySelector(".card").style.display = "none";
+    document.getElementById("editForm").style.display = "block";
+  }
+
+  function cancelEdit() {
+    document.getElementById("editForm").style.display = "none";
+    document.querySelector(".card").style.display = "block";
+  }
+
+  document.getElementById("profileForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    let updatedUser = {
+      name: document.getElementById("edit_name").value,
+      college_id: document.getElementById("edit_college_id").value,
+      whatsapp: document.getElementById("edit_whatsapp").value,
+      email: document.getElementById("edit_email").value
+    };
+
+    fetch('/update_profile', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedUser)
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert(data.message);
+      if (data.success) {
+        location.reload(); // Refresh profile after update
+      }
+    })
+    .catch(error => console.error("Error:", error));
+  });
+</script>
+
+{% endblock %}

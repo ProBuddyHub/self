@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2 class="mt-4">Events</h2>
+
+{% if events_list %}
+  <ul class="list-group">
+  {% for event in events_list %}
+    <li class="list-group-item">
+      <h4>{{ event.name }}</h4>
+      <p>
+         <strong>Date:</strong> {{ event.date }}<br>
+         <strong>Location:</strong> {{ event.location }}<br>
+         <strong>Description:</strong> {{ event.description }}
+      </p>
+      <button class="btn btn-primary" 
+        onclick="confirmRegistration('{{ event.id if event.id else '' }}', '{{ event.name }}')">
+        Register
+      </button>
+    </li>
+  {% endfor %}
+  </ul>
+{% else %}
+  <p>No events available.</p>
+{% endif %}
+
+<!-- JavaScript for Confirmation Popup -->
+<script>
+  function confirmRegistration(eventId, eventName) {
+    if (!eventId) {
+      alert("Error: Invalid event ID.");
+      return;
+    }
+
+    if (confirm(`Do you want to register for "${eventName}"?`)) {
+      fetch('/register_event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',  // Ensures session cookies are sent
+        body: JSON.stringify({ event_id: eventId })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert("Registration successful! Check your email for confirmation.");
+        } else {
+          alert("Error: " + (data.error || "Unknown error"));
+        }
+      })
+      .catch(error => alert("An error occurred. Please try again."));
+    }
+  }
+</script>
+
+{% endblock %}

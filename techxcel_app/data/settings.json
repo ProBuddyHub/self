@@ -1,0 +1,21 @@
+{
+    "announcements": [
+      {"title": "Welcome to TechXcel", "content": "Get ready for upcoming events!"},
+      {"title": "Hackathon Announcement", "content": "Join the hackathon and win exciting prizes!"}
+    ],
+    "star_details": {
+      "name": "TechXcel Club",
+      "description": "TechXcel is a club in RGUKT responsible for technical related events."
+    },
+    "social_links": {
+      "facebook": "https://facebook.com/techxcelclub",
+      "twitter": "https://twitter.com/techxcelclub",
+      "instagram": "https://instagram.com/techxcelclub"
+    },
+    "contact_info": {
+      "email": "info@techxcelclub.com",
+      "phone": "+1 (555) 123-4567"
+    },
+    "footer_text": "© 2025 TechXcel Club. All rights reserved."
+  }
+  

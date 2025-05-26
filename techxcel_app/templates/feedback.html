@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Texhxcel Club - Feedback</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body, html { font-family: Arial, sans-serif; height:100vh; overflow-x:hidden; transition: all 0.3s ease; background:#FFFFFF; }
+    .sidebar { width:220px; background:#2C3E50; color:#ECF0F1; position:fixed; left:-220px; height:100vh; transition: transform 0.3s ease; padding-top:20px; }
+    .sidebar .logo-container { text-align:center; margin-bottom:20px; padding:0 10px; }
+    .sidebar .logo { width:50px; height:50px; border-radius:10px; }
+    .sidebar h2 { margin-top:10px; font-size:1.5rem; }
+    .sidebar ul { list-style-type:none; padding:10px; }
+    .sidebar ul li a { display:block; padding:15px; color:#ECF0F1; text-decoration:none; transition: background 0.3s; }
+    .sidebar ul li a:hover { background:#34495E; }
+    .toggle-btn { position:fixed; top:15px; left:15px; font-size:24px; padding:10px; background:#2C3E50; color:#ECF0F1; border:none; cursor:pointer; z-index:1001; transition: opacity 0.3s ease; }
+    .main-content { width:100%; padding:20px; transition: transform 0.3s ease; }
+    .hero { display:flex; align-items:center; justify-content:center; height:30vh; text-align:center; background: linear-gradient(135deg, #2980B9, #27AE60); color:#fff; }
+    .hero h1 { font-size: clamp(1.5rem, 4vw + 1rem, 4.5rem); }
+    .content-section { padding:20px; }
+    .feedback-entry {
+      background:#ECF0F1;
+      margin-bottom:15px;
+      padding:15px;
+      border-radius:5px;
+      box-shadow:0 2px 5px rgba(0,0,0,0.1);
+    }
+    .feedback-entry h2 { font-size:1.5rem; margin-bottom:10px; color:#2C3E50; }
+    .feedback-entry p { color:#333; }
+    .sidebar-open .sidebar { transform: translateX(220px); }
+    .sidebar-open .main-content { transform: translateX(220px); }
+    .sidebar-open .toggle-btn { opacity:0; }
+  </style>
+</head>
+<body>
+  <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+  <div class="sidebar" id="sidebar">
+    <div class="logo-container">
+      <img src="https://via.placeholder.com/50" alt="Texhxcel Logo" class="logo">
+      <h2>Texhxcel Club</h2>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="announcements.html">Announcements</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="feedback.html">Feedback</a></li>
+        <li><a href="team.html">Team Portal</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="main-content">
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Feedback</h1>
+      </div>
+    </section>
+    <section class="content-section">
+      <div class="feedback-entry">
+        <h2>Great Experience!</h2>
+        <p>"Texhxcel Club has transformed my perspective on technology. The events are inspiring and well-organized."</p>
+      </div>
+      <div class="feedback-entry">
+        <h2>Innovative Approach</h2>
+        <p>"The innovative ideas and projects presented here are truly groundbreaking."</p>
+      </div>
+      <div class="feedback-entry">
+        <h2>Highly Recommended</h2>
+        <p>"I highly recommend joining Texhxcel Club for anyone interested in cutting-edge tech and creative projects."</p>
+      </div>
+    </section>
+  </div>
+  <script>
+    function toggleSidebar() {
+      document.body.classList.toggle("sidebar-open");
+      const btn = document.querySelector('.toggle-btn');
+      btn.textContent = document.body.classList.contains("sidebar-open") ? "✖" : "☰";
+    }
+  </script>
+</body>
+</html>

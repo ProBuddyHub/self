@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="jumbotron">
+  <h1 class="display-4">{{ settings.star_details.name }}</h1>
+  <p class="lead">{{ settings.star_details.description }}</p>
+  <hr class="my-4">
+  <h3>Announcements</h3>
+  {% if settings.announcements %}
+    <ul class="list-group">
+      {% for announcement in settings.announcements %}
+        <li class="list-group-item">
+          <strong>{{ announcement.title }}</strong>: {{ announcement.content }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No announcements available.</p>
+  {% endif %}
+</div>
+{% endblock %}
