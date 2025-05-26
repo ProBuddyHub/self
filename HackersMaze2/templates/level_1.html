@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HackersMaze Level 1 - Caesar Cipher Decoding Challenge</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+    
+    body {
+      background: #0d0d0d;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('hacker_bg.jpeg') no-repeat center center/cover;
+      filter: brightness(0.3);
+      animation: neon-glow 5s infinite alternate;
+      z-index: -1;
+    }
+    
+    @keyframes neon-glow {
+      0% { filter: brightness(0.3) hue-rotate(0deg); }
+      100% { filter: brightness(0.5) hue-rotate(45deg); }
+    }
+    
+    .card {
+      background: rgba(0, 0, 0, 0.85);
+      padding: 25px;
+      margin: 30px auto;
+      width: 90%;
+      max-width: 700px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+      text-align: center;
+    }
+    
+    h2 {
+      font-size: 2rem;
+      color: #00ffff;
+      background: linear-gradient(90deg, #ff00ff, #00ffff, #ff0000);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+    }
+    
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin: 10px 0;
+    }
+    
+    button {
+      background: transparent;
+      border: 2px solid #00ffff;
+      color: #00ffff;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+      margin-top: 20px;
+    }
+    
+    button:hover {
+      background: #00ffff;
+      color: #0d0d0d;
+    }
+    
+    .question {
+      border: 1px dashed #00ffff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      text-align: left;
+    }
+    
+    .useless-data {
+      font-style: italic;
+      color: #ff00ff;
+      opacity: 0.7;
+    }
+    
+    .junk {
+      font-size: 0.8rem;
+      color: #999;
+    }
+    
+    input.answer-input {
+      width: 90%;
+      padding: 8px;
+      margin-top: 10px;
+      border: 1px solid #00ffff;
+      border-radius: 5px;
+      background: #0d0d0d;
+      color: #00ffff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+    }
+    
+    label {
+      font-size: 1.1rem;
+      margin-top: 10px;
+      display: block;
+    }
+    
+    .error-message {
+      color: #ff3333;
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  
+  <!-- Instructions Card -->
+  <div id="instructions-card" class="card">
+    <h2>Level 1: Caesar Cipher Decoding Challenge</h2>
+    <p>
+      Your mission is to decode the given encoded word using a classic Caesar cipher.
+      The encoded word is hidden among extraneous data. Use your logic and knowledge of common cipher methods to reveal the original word.
+    </p>
+    <p>
+      Useless Data: 0xABCD1234, 0xDEADBEEF, 0xCAFEBABE, 0xBADC0FFEE0DDF00D, {f2c3a1}, [ZZ99], &#x1F4A3;
+    </p>
+    <p>
+      Extra Hint: 0x48656C6C6F2C205669636B7921 (Just some extra noise for your brain!)
+    </p>
+    <button id="ready-btn">I am ready</button>
+  </div>
+  
+  <!-- Quiz Container -->
+  <div id="quiz-container" style="display:none;">
+    <div id="question-container" class="card"></div>
+  </div>
+  
+  <!-- Congratulations Card -->
+  <div id="congrats-card" class="card" style="display:none;">
+    <h2>Congratulations!</h2>
+    <p>You have successfully decoded all the words and completed the challenge.</p>
+    <p class="junk">Score: 100 (Bonus: +50 for under 2 attempts per word)</p>
+  </div>
+  
+  <script>
+    // Utility function: Shuffle array elements
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+    
+    // 10 challenge objects with encoded words using a Caesar cipher (shifted by 12).
+    // The original words are cybersecurity related.
+    // 1. SECURITY       -> Encoded: EQOGDUFK
+    // 2. ENCRYPT        -> Encoded: QZODKBF
+    // 3. CYBER          -> Encoded: OKNQD
+    // 4. HACKER         -> Encoded: TMOWQD
+    // 5. FIREWALL       -> Encoded: RUDQIMXX
+    // 6. ALGORITHM      -> Encoded: MXSADUFTY
+    // 7. PROTOCOL       -> Encoded: BDAFAOAX
+    // 8. AUTHENTICATE   -> Encoded: MGFTQZFUOMFQ
+    // 9. MALWARE        -> Encoded: YMXIMDQ
+    // 10. VULNERABLE    -> Encoded: HGXZQDMNXQ
+    let challenges = [
+      {
+        html: `<div class="question">
+                 <p><strong>Encoded Word:</strong> EQOGDUFK</p>
+                 <p class="useless-data">Extra Info: 0xFADEB00C, 0xC0FFEE, Random: 3F2A1C</p>
+                 <p>Decode the above word using a Caesar cipher. Look beyond the extra noise.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter decoded word">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "security"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Encoded Word:</strong> QZODKBF</p>
+                 <p class="useless-data">Misc: 0xB16B00B5, 0xDEAD10CC, Note: 0xFA1EDBEEF</p>
+                 <p>Decode the encoded word amidst the random clutter.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter decoded word">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, try again.</p>
+               </div>`,
+        answer: "encrypt"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Encoded Word:</strong> OKNQD</p>
+                 <p class="useless-data">Random Data: 0xBADA55, 0xFEEDFACE, 0xCAFED00D</p>
+                 <p>Using your cipher skills, decode the above word.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Decoded word">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect, please try again.</p>
+               </div>`,
+        answer: "cyber"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Encoded Word:</strong> TMOWQD</p>
+                 <p class="useless-data">Useless String: 0xFACEFEED, 0x1234ABCD, 0xDEADC0DE</p>
+                 <p>Decode the encoded word hidden among the distractions.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Decoded word">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect, please try again.</p>
+               </div>`,
+        answer: "hacker"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Encoded Word:</strong> RUDQIMXX</p>
+                 <p class="useless-data">Extra Bits: 0xBADF00D, 0xC0FFEE, 0xBEEFCAFE</p>
+                 <p>Uncover the original word by decoding the above text.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Decoded word">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "firewall"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Encoded Word:</strong> MXSADUFTY</p>
+                 <p class="useless-data">Miscellaneous: 0xDEADBEEF, 0xB16B00B5, 0xCAFEBABE</p>
+                 <p>Decode the above text using your cipher knowledge.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Decoded word">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect, try again.</p>
+               </div>`,
+        answer: "algorithm"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Encoded Word:</strong> BDAFAOAX</p>
+                 <p class="useless-data">Dummy Data: 0xFEEDFACE, 0x0BADF00D, 0xC0DE1234</p>
+                 <p>Apply your decoding skills to reveal the original word.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Decoded word">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "protocol"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Encoded Word:</strong> MGFTQZFUOMFQ</p>
+                 <p class="useless-data">Random Junk: 0xDEAD10CC, 0xB16B00B5, 0xFACEFEED</p>
+                 <p>Decode the above encoded text to reveal the hidden word.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Decoded word">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect, please try again.</p>
+               </div>`,
+        answer: "authenticate"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Encoded Word:</strong> YMXIMDQ</p>
+                 <p class="useless-data">Extra Data: 0xCAFED00D, 0xDEADBEEF, 0xBADA55</p>
+                 <p>Decode the above encoded word to uncover its meaning.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Decoded word">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "malware"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Encoded Word:</strong> HGXZQDMNXQ</p>
+                 <p class="useless-data">Useless Info: 0xFEEDFACE, 0xCAFEBABE, 0xDEADC0DE</p>
+                 <p>Decode the above text by applying your cipher skills.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Decoded word">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "vulnerable"
+      }
+    ];
+    
+    // Shuffle the challenges array for randomness.
+    challenges = shuffle(challenges);
+    let currentChallenge = 0;
+    let attemptCount = 0;
+    
+    // Function to display the current challenge.
+    function showChallenge(index) {
+      const container = document.getElementById("question-container");
+      container.innerHTML = challenges[index].html;
+      
+      // Attach event listener to the submit button.
+      document.querySelector(".submit-btn").addEventListener("click", function() {
+        let userAnswer = document.querySelector(".answer-input").value.trim().toLowerCase();
+        attemptCount++;
+        // Check the answer (case-insensitive).
+        if(userAnswer === challenges[index].answer.toLowerCase()){
+          currentChallenge++;
+          if(currentChallenge < challenges.length){
+            showChallenge(currentChallenge);
+          } else {
+            document.getElementById("quiz-container").style.display = "none";
+            document.getElementById("congrats-card").style.display = "block";
+          }
+        } else {
+          document.querySelector(".error-message").style.display = "block";
+        }
+      });
+    }
+    
+    // Begin challenge on "I am ready" button click.
+    document.getElementById("ready-btn").addEventListener("click", function(){
+      document.getElementById("instructions-card").style.display = "none";
+      document.getElementById("quiz-container").style.display = "block";
+      showChallenge(currentChallenge);
+    });
+  </script>
+</body>
+</html>

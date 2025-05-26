@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HackersMaze Level 9 - Decrypt the Password Challenge</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+    
+    body {
+      background: #0d0d0d;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('hacker_bg.jpeg') no-repeat center center/cover;
+      filter: brightness(0.3);
+      animation: neon-glow 5s infinite alternate;
+      z-index: -1;
+    }
+    
+    @keyframes neon-glow {
+      0% { filter: brightness(0.3) hue-rotate(0deg); }
+      100% { filter: brightness(0.5) hue-rotate(45deg); }
+    }
+    
+    .card {
+      background: rgba(0, 0, 0, 0.85);
+      padding: 25px;
+      margin: 30px auto;
+      width: 90%;
+      max-width: 700px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+      text-align: center;
+    }
+    
+    h2 {
+      font-size: 2rem;
+      color: #00ffff;
+      background: linear-gradient(90deg, #ff00ff, #00ffff, #ff0000);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+    }
+    
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin: 10px 0;
+    }
+    
+    button {
+      background: transparent;
+      border: 2px solid #00ffff;
+      color: #00ffff;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+      margin-top: 20px;
+    }
+    
+    button:hover {
+      background: #00ffff;
+      color: #0d0d0d;
+    }
+    
+    .question {
+      border: 1px dashed #00ffff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      text-align: left;
+    }
+    
+    pre {
+      background: #1a1a1a;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      color: #00ffff;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+    
+    .useless-data {
+      font-style: italic;
+      color: #ff00ff;
+      opacity: 0.7;
+    }
+    
+    .junk {
+      font-size: 0.8rem;
+      color: #999;
+    }
+    
+    input.answer-input {
+      width: 90%;
+      padding: 8px;
+      margin-top: 10px;
+      border: 1px solid #00ffff;
+      border-radius: 5px;
+      background: #0d0d0d;
+      color: #00ffff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+    }
+    
+    label {
+      font-size: 1.1rem;
+      margin-top: 10px;
+      display: block;
+    }
+    
+    .error-message {
+      color: #ff3333;
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  
+  <!-- Instructions Card -->
+  <div id="instructions-card" class="card">
+    <h2>Level 9: Decrypt the Password Challenge</h2>
+    <p>
+      Your mission is to determine the original password from its hash.
+      Each snippet below shows a hashed password along with extra distracting data.
+      Some of the useless data contains hidden hints (in hex) that, if decoded, reveal the original password.
+    </p>
+    <p>
+      Useless Data: 0xDEADBEEF, 0xCAFEBABE, 0xBADC0FFEE0DDF00D, {NOISE}, [XYZ], &#x1F4A3;
+    </p>
+    <button id="ready-btn">I am ready</button>
+  </div>
+  
+  <!-- Quiz Container -->
+  <div id="quiz-container" style="display:none;">
+    <div id="question-container" class="card"></div>
+  </div>
+  
+  <!-- Congratulations Card -->
+  <div id="congrats-card" class="card" style="display:none;">
+    <h2>Congratulations!</h2>
+    <p>You have successfully decrypted the password and accessed the system.</p>
+    <p class="junk">Score: 100 (Bonus: +50 for under 2 attempts per snippet)</p>
+  </div>
+  
+  <script>
+    // Utility function: Shuffle array elements
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+    
+    // The expected original password is "letmein".
+    // Its MD5 hash is "0d107d09f5bbe40cade3de5c71e9e9b7"
+    // Hidden hint in hex: 0x6c65746d65696e
+    let challenges = [
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet (PHP):</strong></p>
+                 <pre>
+&lt;?php
+// Useless data: 0xDEADBEEF, {PHP_NOISE}
+// Hashed Password: 0d107d09f5bbe40cade3de5c71e9e9b7
+// Hidden hint: 0x6c65746d65696e
+echo "Your password hash is: 0d107d09f5bbe40cade3de5c71e9e9b7";
+?&gt;
+                 </pre>
+                 <p class="useless-data">Extra: 0xCAFEBABE, Hint: 0x6c65746d65696e</p>
+                 <label for="answer">Original Password:</label>
+                 <input type="text" class="answer-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect password, please try again.</p>
+               </div>`,
+        answer: "letmein"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet (JavaScript):</strong></p>
+                 <pre>
+// Useless data: 0xBADF00D, {JS_NOISE}
+// Hashed Password: "0d107d09f5bbe40cade3de5c71e9e9b7"
+// Hidden hint: 0x6c65746d65696e
+console.log("Hash: 0d107d09f5bbe40cade3de5c71e9e9b7");
+                 </pre>
+                 <p class="useless-data">Clutter: 0xFACEFEED, Hint: 0x6c65746d65696e</p>
+                 <label for="answer">Original Password:</label>
+                 <input type="text" class="answer-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect password, please try again.</p>
+               </div>`,
+        answer: "letmein"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet (Python):</strong></p>
+                 <pre>
+# Useless data: 0xABCDEF, {PY_NOISE}
+# Hashed Password: 0d107d09f5bbe40cade3de5c71e9e9b7
+# Hidden hint: 0x6c65746d65696e
+print("Hash:", "0d107d09f5bbe40cade3de5c71e9e9b7")
+                 </pre>
+                 <p class="useless-data">Extra info: 0xBADC0FFEE0, Hint: 0x6c65746d65696e</p>
+                 <label for="answer">Original Password:</label>
+                 <input type="text" class="answer-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect password, please try again.</p>
+               </div>`,
+        answer: "letmein"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet (Java - JDBC):</strong></p>
+                 <pre>
+/* Useless data: 0xCAFEBABE, {JAVA_NOISE}
+// Hashed Password: 0d107d09f5bbe40cade3de5c71e9e9b7
+// Hidden hint: 0x6c65746d65696e */
+String hash = "0d107d09f5bbe40cade3de5c71e9e9b7";
+System.out.println("Hash: " + hash);
+                 </pre>
+                 <p class="useless-data">Extra hint: 0x6c65746d65696e</p>
+                 <label for="answer">Original Password:</label>
+                 <input type="text" class="answer-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect password, please try again.</p>
+               </div>`,
+        answer: "letmein"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet (C#):</strong></p>
+                 <pre>
+// Useless data: 0xDEADBEEF, {CS_NOISE}
+// Hashed Password: 0d107d09f5bbe40cade3de5c71e9e9b7
+// Hidden hint: 0x6c65746d65696e
+string hash = "0d107d09f5bbe40cade3de5c71e9e9b7";
+Console.WriteLine("Hash: " + hash);
+                 </pre>
+                 <p class="useless-data">Extra: 0xFACEFEED, Hint: 0x6c65746d65696e</p>
+                 <label for="answer">Original Password:</label>
+                 <input type="text" class="answer-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect password, please try again.</p>
+               </div>`,
+        answer: "letmein"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet (Node.js):</strong></p>
+                 <pre>
+/*
+  Useless data: 0xBADC0FFEE0, {NODE_NOISE}
+  Hashed Password: 0d107d09f5bbe40cade3de5c71e9e9b7
+  Hidden hint: 0x6c65746d65696e
+*/
+console.log("Hash:", "0d107d09f5bbe40cade3de5c71e9e9b7");
+                 </pre>
+                 <p class="useless-data">Clutter: 0xDEADBEEF, Hint: 0x6c65746d65696e</p>
+                 <label for="answer">Original Password:</label>
+                 <input type="text" class="answer-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect password, please try again.</p>
+               </div>`,
+        answer: "letmein"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet (Ruby):</strong></p>
+                 <pre>
+# Useless data: 0xCAFEBABE, {RUBY_NOISE}
+# Hashed Password: 0d107d09f5bbe40cade3de5c71e9e9b7
+# Hidden hint: 0x6c65746d65696e
+puts "Hash: 0d107d09f5bbe40cade3de5c71e9e9b7"
+                 </pre>
+                 <p class="useless-data">Extra: 0xBADC0FFEE0, Hint: 0x6c65746d65696e</p>
+                 <label for="answer">Original Password:</label>
+                 <input type="text" class="answer-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect password, please try again.</p>
+               </div>`,
+        answer: "letmein"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet (ASP Classic):</strong></p>
+                 <pre>
+&lt;%
+// Useless data: 0xBADF00D, {ASP_NOISE}
+// Hashed Password: 0d107d09f5bbe40cade3de5c71e9e9b7
+// Hidden hint: 0x6c65746d65696e
+Response.Write("Hash: 0d107d09f5bbe40cade3de5c71e9e9b7");
+%&gt;
+                 </pre>
+                 <p class="useless-data">Extra hint: 0x6c65746d65696e</p>
+                 <label for="answer">Original Password:</label>
+                 <input type="text" class="answer-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect password, please try again.</p>
+               </div>`,
+        answer: "letmein"
+      }
+    ];
+    
+    // Shuffle the challenges for randomness.
+    challenges = shuffle(challenges);
+    let currentChallenge = 0;
+    let attemptCount = 0;
+    
+    // Function to display the current challenge.
+    function showChallenge(index) {
+      const container = document.getElementById("question-container");
+      container.innerHTML = challenges[index].html;
+      
+      // Attach event listener to the submit button.
+      document.querySelector(".submit-btn").addEventListener("click", function() {
+        let userAnswer = document.querySelector(".answer-input").value.trim().toLowerCase();
+        attemptCount++;
+        // Check answer (case-insensitive).
+        if(userAnswer === challenges[index].answer.toLowerCase()){
+          currentChallenge++;
+          if(currentChallenge < challenges.length){
+            showChallenge(currentChallenge);
+          } else {
+            document.getElementById("quiz-container").style.display = "none";
+            document.getElementById("congrats-card").style.display = "block";
+          }
+        } else {
+          document.querySelector(".error-message").style.display = "block";
+        }
+      });
+    }
+    
+    // Start challenge on "I am ready" button click.
+    document.getElementById("ready-btn").addEventListener("click", function(){
+      document.getElementById("instructions-card").style.display = "none";
+      document.getElementById("quiz-container").style.display = "block";
+      showChallenge(currentChallenge);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HackersMaze Final Level - Fix the Login System Challenge</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+    
+    body {
+      background: #0d0d0d;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('hacker_bg.jpeg') no-repeat center center/cover;
+      filter: brightness(0.3);
+      animation: neon-glow 5s infinite alternate;
+      z-index: -1;
+    }
+    
+    @keyframes neon-glow {
+      0% { filter: brightness(0.3) hue-rotate(0deg); }
+      100% { filter: brightness(0.5) hue-rotate(45deg); }
+    }
+    
+    .card {
+      background: rgba(0, 0, 0, 0.85);
+      padding: 25px;
+      margin: 30px auto;
+      width: 90%;
+      max-width: 800px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+      text-align: center;
+    }
+    
+    h2 {
+      font-size: 2.2rem;
+      color: #00ffff;
+      background: linear-gradient(90deg, #ff00ff, #00ffff, #ff0000);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+    }
+    
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin: 10px 0;
+    }
+    
+    button {
+      background: transparent;
+      border: 2px solid #00ffff;
+      color: #00ffff;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+      margin-top: 20px;
+    }
+    
+    button:hover {
+      background: #00ffff;
+      color: #0d0d0d;
+    }
+    
+    .question {
+      border: 1px dashed #00ffff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      text-align: left;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    
+    pre {
+      background: #1a1a1a;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      color: #00ffff;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+    }
+    
+    .useless-data {
+      font-style: italic;
+      color: #ff00ff;
+      opacity: 0.7;
+    }
+    
+    .junk {
+      font-size: 0.8rem;
+      color: #999;
+    }
+    
+    input.answer-input {
+      width: 90%;
+      padding: 8px;
+      margin-top: 10px;
+      border: 1px solid #00ffff;
+      border-radius: 5px;
+      background: #0d0d0d;
+      color: #00ffff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+    }
+    
+    label {
+      font-size: 1.1rem;
+      margin-top: 10px;
+      display: block;
+    }
+    
+    .error-message {
+      color: #ff3333;
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  
+  <!-- Instructions Card -->
+  <div id="instructions-card" class="card">
+    <h2>Final Level: Fix the Login System</h2>
+    <p>
+      Your mission is to analyze the complex login system code below. The system is riddled with multiple security vulnerabilities – from SQL injection to insecure session management and unsanitized output.
+      Extra, distracting data is intermingled within the code. Look carefully; hidden among the clutter are subtle hints in the form of hex strings. One such hidden hex string decodes to a keyword that represents the fix.
+    </p>
+    <p>
+      Useless Data: 0xDEADBEEF, 0xCAFEBABE, 0xBADC0FFEE0DDF00D, {NOISE}, [XYZ], &#x1F4A3;
+    </p>
+    <p>
+      When you believe you have applied the proper fixes conceptually, enter the secret keyword (in all lowercase) in the input field below.
+    </p>
+    <button id="ready-btn">I am ready</button>
+  </div>
+  
+  <!-- Quiz Container -->
+  <div id="quiz-container" style="display:none;">
+    <div id="question-container" class="card"></div>
+  </div>
+  
+  <!-- Congratulations Card -->
+  <div id="congrats-card" class="card" style="display:none;">
+    <h2>Congratulations!</h2>
+    <p>
+      You have successfully fixed the vulnerabilities in the login system and achieved secure access.
+    </p>
+    <p class="junk">Score: 100 (Bonus: +50 for under 2 attempts)</p>
+  </div>
+  
+  <script>
+    // Utility function to shuffle an array
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+    
+    // Expected keyword (hidden in useless data as hex: 0x7365637572655f6c6f67696e decodes to "secure_login")
+    const expectedKeyword = "secure_login";
+    
+    // Array of 10 challenge objects for the final level.
+    // Each variant is an extensive code snippet simulating a vulnerable login system with extra distracting data and subtle hints.
+    let challenges = [
+      {
+        html: `<div class="question">
+  <p><strong>Snippet (PHP):</strong></p>
+  <pre>
+&lt;?php
+// BEGIN EXTRA NOISE
+// 0xDEADBEEF, {RANDOM_DATA}
+// Useless comment: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+// Hidden hint in noise: 0x7365637572655f6c6f67696e
+// END EXTRA NOISE
+session_start();
+$username = $_POST['username'];
+$password = $_POST['password'];
+// Vulnerable query using concatenation:
+$query = "SELECT * FROM users WHERE username = '" . $username . "' AND password = '" . $password . "'";
+// Useless debug: echo $query;
+$result = mysql_query($query);
+// Insecure cookie handling:
+if(mysql_num_rows($result) > 0){
+  // More noise: 0xCAFEBABE, {JUNK}
+  setcookie("session", "insecure_value", time()+3600);
+  echo "Access Granted";
+} else {
+  echo "Access Denied";
+}
+?&gt;
+  </pre>
+  <p class="useless-data">Extra clutter: 0xBADC0FFEE0DDF00D, Hint: 0x7365637572655f6c6f67696e</p>
+  <label for="answer">Enter fix keyword:</label>
+  <input type="text" class="answer-input" placeholder="Enter keyword">
+  <button class="submit-btn">Submit Answer</button>
+  <p class="error-message" style="display:none;">Incorrect fix, please try again.</p>
+</div>`,
+        answer: expectedKeyword
+      },
+      {
+        html: `<div class="question">
+  <p><strong>Snippet (Python - Flask):</strong></p>
+  <pre>
+# BEGIN EXTRA NOISE
+# 0xABCDEF, {PY_NOISE}
+// Hidden hint: 0x7365637572655f6c6f67696e
+# Random useless log: Debug: Null pointer exception expected.
+# END EXTRA NOISE
+from flask import Flask, request, make_response
+import sqlite3
+app = Flask(__name__)
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.form['username']
+    password = request.form['password']
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    # Vulnerable query:
+    query = "SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'"
+    cursor.execute(query)
+    result = cursor.fetchall()
+    if result:
+        resp = make_response("Access Granted")
+        # Insecure session management:
+        resp.set_cookie('session', 'insecure_value')
+        return resp
+    else:
+        return "Access Denied"
+if __name__ == '__main__':
+    app.run()
+  </pre>
+  <p class="useless-data">Extra clutter: 0xBADC0FFEE0, Hint: 0x7365637572655f6c6f67696e</p>
+  <label for="answer">Enter fix keyword:</label>
+  <input type="text" class="answer-input" placeholder="Enter keyword">
+  <button class="submit-btn">Submit Answer</button>
+  <p class="error-message" style="display:none;">Incorrect fix, please try again.</p>
+</div>`,
+        answer: expectedKeyword
+      },
+      {
+        html: `<div class="question">
+  <p><strong>Snippet (Node.js - Express):</strong></p>
+  <pre>
+/*
+  // BEGIN EXTRA NOISE
+  // Useless data: 0xBADF00D, {NODE_RANDOM}
+  // Hidden hint: 0x7365637572655f6c6f67696e
+  // END EXTRA NOISE
+*/
+const express = require('express');
+const app = express();
+const bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({ extended: true }));
+app.post('/login', (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+  // Vulnerable query construction:
+  const query = "SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'";
+  // Simulate query execution:
+  if(query.includes("admin")){
+    // Insecure cookie:
+    res.cookie("session", "insecure_value");
+    res.send("Access Granted");
+  } else {
+    res.send("Access Denied");
+  }
+});
+app.listen(3000);
+  </pre>
+  <p class="useless-data">Extra clutter: 0xCAFEBABE, Hint: 0x7365637572655f6c6f67696e</p>
+  <label for="answer">Enter fix keyword:</label>
+  <input type="text" class="answer-input" placeholder="Enter keyword">
+  <button class="submit-btn">Submit Answer</button>
+  <p class="error-message" style="display:none;">Incorrect fix, please try again.</p>
+</div>`,
+        answer: expectedKeyword
+      },
+      {
+        html: `<div class="question">
+  <p><strong>Snippet (ASP Classic):</strong></p>
+  <pre>
+&lt;%
+// BEGIN EXTRA NOISE
+' Useless comment: 0xDEADBEEF, {ASP_JUNK}
+' Hidden hint: 0x7365637572655f6c6f67696e
+' Random text: Lorem ipsum dolor sit amet.
+' END EXTRA NOISE
+Dim username, password
+username = Request.Form("username")
+password = Request.Form("password")
+Dim query
+query = "SELECT * FROM users WHERE username = '" & username & "' AND password = '" & password & "'" ' Vulnerable!
+' Insecure session cookie:
+If query <> "" Then
+  Response.Cookies("session") = "insecure_value"
+  Response.Write("Access Granted")
+Else
+  Response.Write("Access Denied")
+End If
+%&gt;
+  </pre>
+  <p class="useless-data">Extra clutter: 0xCAFED00D, Hint: 0x7365637572655f6c6f67696e</p>
+  <label for="answer">Enter fix keyword:</label>
+  <input type="text" class="answer-input" placeholder="Enter keyword">
+  <button class="submit-btn">Submit Answer</button>
+  <p class="error-message" style="display:none;">Incorrect fix, please try again.</p>
+</div>`,
+        answer: expectedKeyword
+      },
+      {
+        html: `<div class="question">
+  <p><strong>Snippet (JSP):</strong></p>
+  <pre>
+&lt;%@ page language="java" %&gt;
+&lt;%
+  // BEGIN EXTRA NOISE
+  // Useless info: 0xCAFEBABE, {JSP_NOISE}
+  // Hidden hint: 0x7365637572655f6c6f67696e
+  // END EXTRA NOISE
+  String username = request.getParameter("username");
+  String password = request.getParameter("password");
+  String query = "SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'";
+  // Vulnerable query execution:
+  if(query.contains("admin")){
+      out.println("Access Granted");
+  } else {
+      out.println("Access Denied");
+  }
+%&gt;
+  </pre>
+  <p class="useless-data">Extra hint: 0x7365637572655f6c6f67696e</p>
+  <label for="answer">Enter fix keyword:</label>
+  <input type="text" class="answer-input" placeholder="Enter keyword">
+  <button class="submit-btn">Submit Answer</button>
+  <p class="error-message" style="display:none;">Incorrect fix, please try again.</p>
+</div>`,
+        answer: expectedKeyword
+      },
+      {
+        html: `<div class="question">
+  <p><strong>Snippet (Ruby on Rails):</strong></p>
+  <pre>
+# BEGIN EXTRA NOISE
+# Useless data: 0xBADA55, {RAILS_JUNK}
+# Hidden hint: 0x7365637572655f6c6f67696e
+# END EXTRA NOISE
+user = params[:username]
+pass = params[:password]
+query = "SELECT * FROM users WHERE username = '" + user + "' AND password = '" + pass + "'"  # Vulnerable!
+result = ActiveRecord::Base.connection.execute(query)
+if result.any?
+  render plain: "Access Granted"
+else
+  render plain: "Access Denied"
+end
+  </pre>
+  <p class="useless-data">Extra clutter: 0xCAFEBABE, Hint: 0x7365637572655f6c6f67696e</p>
+  <label for="answer">Enter fix keyword:</label>
+  <input type="text" class="answer-input" placeholder="Enter keyword">
+  <button class="submit-btn">Submit Answer</button>
+  <p class="error-message" style="display:none;">Incorrect fix, please try again.</p>
+</div>`,
+        answer: expectedKeyword
+      },
+      {
+        html: `<div class="question">
+  <p><strong>Snippet (ASP.NET Razor):</strong></p>
+  <pre>
+@{
+// BEGIN EXTRA NOISE
+// Useless info: 0xDEADBEEF, {NET_JUNK}
+// Hidden hint: 0x7365637572655f6c6f67696e
+// END EXTRA NOISE
+    var username = Request.Form["username"];
+    var password = Request.Form["password"];
+    var query = "SELECT * FROM Users WHERE username = '" + username + "' AND password = '" + password + "'"; // Vulnerable!
+    if(query.Contains("admin"))
+    {
+        Response.Cookies["session"].Value = "insecure_value";
+        <text>Access Granted</text>
+    }
+    else
+    {
+        <text>Access Denied</text>
+    }
+}
+  </pre>
+  <p class="useless-data">Extra: 0xCAFEBABE, Hint: 0x7365637572655f6c6f67696e</p>
+  <label for="answer">Enter fix keyword:</label>
+  <input type="text" class="answer-input" placeholder="Enter keyword">
+  <button class="submit-btn">Submit Answer</button>
+  <p class="error-message" style="display:none;">Incorrect fix, please try again.</p>
+</div>`,
+        answer: expectedKeyword
+      }
+    ];
+    
+    // Randomize the challenges.
+    challenges = shuffle(challenges);
+    let currentChallenge = 0;
+    let attemptCount = 0;
+    
+    // Function to display the current challenge.
+    function showChallenge(index) {
+      const container = document.getElementById("question-container");
+      container.innerHTML = challenges[index].html;
+      
+      // Attach event listener to the submit button.
+      document.querySelector(".submit-btn").addEventListener("click", function() {
+        let userAnswer = document.querySelector(".answer-input").value.trim().toLowerCase();
+        attemptCount++;
+        if(userAnswer === challenges[index].answer.toLowerCase()){
+          currentChallenge++;
+          if(currentChallenge < challenges.length){
+            showChallenge(currentChallenge);
+          } else {
+            document.getElementById("quiz-container").style.display = "none";
+            document.getElementById("congrats-card").style.display = "block";
+          }
+        } else {
+          document.querySelector(".error-message").style.display = "block";
+        }
+      });
+    }
+    
+    // Start challenge on "I am ready" button click.
+    document.getElementById("ready-btn").addEventListener("click", function(){
+      document.getElementById("instructions-card").style.display = "none";
+      document.getElementById("quiz-container").style.display = "block";
+      showChallenge(currentChallenge);
+    });
+  </script>
+</body>
+</html>

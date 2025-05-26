@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Level Detail - HackersMage</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@^2.2/dist/tailwind.min.css" rel="stylesheet">
+  
+  <!-- GSAP Animation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+    body {
+      background: #0d0d0d;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    /* Background */
+    .glitch-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('static/images/hacker_bg.jpeg') no-repeat center center/cover;
+      filter: brightness(0.3);
+      animation: neon-glow 5s infinite alternate;
+      z-index: -1;
+    }
+    @keyframes neon-glow {
+      0% { filter: brightness(0.3) hue-rotate(0deg); }
+      100% { filter: brightness(0.5) hue-rotate(45deg); }
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      box-shadow: 0 0 15px rgba(0,255,255,0.8);
+      padding: 20px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      padding-left: 30px;
+    }
+    .sidebar h2 {
+      font-size: 1.75rem;
+      font-weight: bold;
+      background: linear-gradient(90deg, #ff00ff, #00ffff, #ff0000);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+    }
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+      text-decoration: none;
+      color: #00ffff;
+      font-weight: bold;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .sidebar a:hover {
+      background: rgba(0,255,255,0.2);
+      box-shadow: 0 0 10px #00ffff;
+    }
+    .sidebar a img {
+      width: 24px;
+      height: 24px;
+      margin-right: 10px;
+      transition: transform 0.3s;
+    }
+    .sidebar a:hover img {
+      transform: scale(1.2);
+    }
+
+    /* Main Content */
+    .content {
+      margin-left: 260px;
+      padding: 20px;
+    }
+    .neon-text {
+      font-size: 2rem;
+      font-weight: bold;
+      background: linear-gradient(90deg, #ff00ff, #00ffff, #ff0000);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .level-detail-card {
+      background: rgba(0, 0, 0, 0.75);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,255,255,0.8);
+      max-width: 800px;
+      margin: auto;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .level-detail-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 20px #ff00ff;
+    }
+    .level-instructions {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .challenge-area {
+      background: rgba(0,0,0,0.85);
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .start-btn {
+      padding: 12px 30px;
+      background: linear-gradient(90deg, #00ffff, #ff00ff);
+      border: none;
+      border-radius: 5px;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .start-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px #ff00ff;
+    }
+  </style>
+</head>
+<body>
+  <!-- Background -->
+  <div class="glitch-bg"></div>
+  
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>HackersMage</h2>
+    <a href="dashboard"><img src="static/images/home_icon.png" alt="Home Icon">🏠 Home</a>
+    <a href="levels"><img src="static/images/levels_icon.png" alt="Levels Icon">🛠 Levels</a>
+    <a href="leaderboard"><img src="static/images/leaderboard_icon.png" alt="Leaderboard Icon">🏆 Leaderboard</a>
+    <a href="profile"><img src="static/images/profile_icon.png" alt="Profile Icon">👤 Profile</a>
+    <a href="instructions"><img src="static/images/instructions_icon.png" alt="Instructions Icon">📜 Instructions</a>
+    <a href="/logout"><img src="static/images/logout_icon.png" alt="Logout Icon">🚪 Logout</a>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="content">
+    <h1 class="text-3xl font-bold mb-6 neon-text">Level 1: The Initiation</h1>
+    <div class="level-detail-card">
+      <div class="level-instructions">
+        <p>Welcome to Level 1! In this challenge, you'll learn the basics of navigating our cyber maze. Your objective is to solve the puzzle by decoding a series of encrypted messages. Follow the clues and type your answer in the challenge area below.</p>
+        <p>Be quick and accurate—the faster you solve the puzzle, the higher your score!</p>
+      </div>
+      <div class="challenge-area">
+        <p>Encrypted Message: <span class="font-bold">U2FsdGVkX1+...</span></p>
+        <!-- Here, you might include an input field and a button in a real scenario -->
+      </div>
+      <button class="start-btn">Start Challenge</button>
+    </div>
+  </div>
+  
+  <!-- JavaScript -->
+  <script>
+    // GSAP Animation for level detail card and sidebar links
+    gsap.from(".level-detail-card", { opacity: 0, y: 50, duration: 1 });
+    gsap.from(".sidebar a", { opacity: 0, x: -50, duration: 1, stagger: 0.2 });
+  </script>
+</body>
+</html>

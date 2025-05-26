@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HackersMaze Level 6 - Bypass the Login System Challenge</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+    
+    body {
+      background: #0d0d0d;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('hacker_bg.jpeg') no-repeat center center/cover;
+      filter: brightness(0.3);
+      animation: neon-glow 5s infinite alternate;
+      z-index: -1;
+    }
+    
+    @keyframes neon-glow {
+      0% { filter: brightness(0.3) hue-rotate(0deg); }
+      100% { filter: brightness(0.5) hue-rotate(45deg); }
+    }
+    
+    .card {
+      background: rgba(0, 0, 0, 0.85);
+      padding: 25px;
+      margin: 30px auto;
+      width: 90%;
+      max-width: 700px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+      text-align: center;
+    }
+    
+    h2 {
+      font-size: 2rem;
+      color: #00ffff;
+      background: linear-gradient(90deg, #ff00ff, #00ffff, #ff0000);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+    }
+    
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin: 10px 0;
+    }
+    
+    button {
+      background: transparent;
+      border: 2px solid #00ffff;
+      color: #00ffff;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+      margin-top: 20px;
+    }
+    
+    button:hover {
+      background: #00ffff;
+      color: #0d0d0d;
+    }
+    
+    .question {
+      border: 1px dashed #00ffff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      text-align: left;
+    }
+    
+    pre {
+      background: #1a1a1a;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      color: #00ffff;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+    
+    .useless-data {
+      font-style: italic;
+      color: #ff00ff;
+      opacity: 0.7;
+    }
+    
+    .junk {
+      font-size: 0.8rem;
+      color: #999;
+    }
+    
+    input.username-input, input.password-input {
+      width: 90%;
+      padding: 8px;
+      margin-top: 10px;
+      border: 1px solid #00ffff;
+      border-radius: 5px;
+      background: #0d0d0d;
+      color: #00ffff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+    }
+    
+    label {
+      font-size: 1.1rem;
+      margin-top: 10px;
+      display: block;
+    }
+    
+    .error-message {
+      color: #ff3333;
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  
+  <!-- Instructions Card -->
+  <div id="instructions-card" class="card">
+    <h2>Level 6: Bypass the Login System Challenge</h2>
+    <p>
+      Your mission is to bypass the vulnerable login system by discovering the correct credentials hidden within the code snippets.
+      Each variant simulates a flawed login mechanism cluttered with extra, distracting data.
+      Some of the useless data even includes subtle hints if you look closely.
+    </p>
+    <p>
+      Useless Data: 0xDEADBEEF, 0xCAFEBABE, 0xBADC0FFEE0DDF00D, {X9Z7}, [AB12], &#x1F4A3;
+    </p>
+    <button id="ready-btn">I am ready</button>
+  </div>
+  
+  <!-- Quiz Container -->
+  <div id="quiz-container" style="display:none;">
+    <div id="question-container" class="card"></div>
+  </div>
+  
+  <!-- Congratulations Card -->
+  <div id="congrats-card" class="card" style="display:none;">
+    <h2>Congratulations!</h2>
+    <p>You have successfully bypassed the login system and gained unauthorized access.</p>
+    <p class="junk">Score: 100 (Bonus: +50 for under 2 attempts per variant)</p>
+  </div>
+  
+  <script>
+    // Utility function: Shuffle array elements
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+    
+    // Array of 10 challenge objects for Login Bypass.
+    // Each variant simulates a vulnerable login snippet with extra clutter.
+    // Expected credentials for all variants: username "admin", password "bypass".
+    let challenges = [
+      {
+        html: `<div class="question">
+                 <p><strong>Variant 1 (PHP):</strong></p>
+                 <pre>
+&lt;?php
+// Useless data: 0xDEADBEEF, {RAND123}
+// Hint hidden in hex: 0x61646d696e
+$username = $_POST['username'];
+$password = $_POST['password'];
+if($username == "admin" && $password == "bypass") {
+  echo "Access Granted";
+} else {
+  echo "Access Denied";
+}
+?&gt;
+                 </pre>
+                 <p class="useless-data">Clutter: 0xCAFEBABE, Extra hint: 0x627970617373</p>
+                 <label for="username">Username:</label>
+                 <input type="text" class="username-input" placeholder="Enter username">
+                 <label for="password">Password:</label>
+                 <input type="text" class="password-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect credentials, please try again.</p>
+               </div>`,
+        answer: { username: "admin", password: "bypass" }
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Variant 2 (JavaScript):</strong></p>
+                 <pre>
+// Useless data: 0xBADF00D, {JSNOISE}
+// Hint: Look for 0x61646d696e in the noise.
+var username = prompt("Enter username:");
+var password = prompt("Enter password:");
+if(username === "admin" && password === "bypass"){
+  document.write("Welcome!");
+} else {
+  document.write("Access Denied");
+}
+                 </pre>
+                 <p class="useless-data">Extra: 0xFEEDFACE, Hint in hex: 0x627970617373</p>
+                 <label for="username">Username:</label>
+                 <input type="text" class="username-input" placeholder="Enter username">
+                 <label for="password">Password:</label>
+                 <input type="text" class="password-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect credentials, please try again.</p>
+               </div>`,
+        answer: { username: "admin", password: "bypass" }
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Variant 3 (Python):</strong></p>
+                 <pre>
+# Useless comment: 0xABCDEF, {PYNOISE}
+username = input("Username: ")
+password = input("Password: ")
+# Hidden hint: hex 0x61646d696e means 'admin'
+if username == "admin" and password == "bypass":
+    print("Access Granted")
+else:
+    print("Access Denied")
+                 </pre>
+                 <p class="useless-data">Random Data: 0xBADC0FFEE0DDF00D, Hint: 0x627970617373</p>
+                 <label for="username">Username:</label>
+                 <input type="text" class="username-input" placeholder="Enter username">
+                 <label for="password">Password:</label>
+                 <input type="text" class="password-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect credentials, please try again.</p>
+               </div>`,
+        answer: { username: "admin", password: "bypass" }
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Variant 4 (Java - Pseudo Code):</strong></p>
+                 <pre>
+/* Useless data: 0xDEADC0DE, {JAVA123} */
+/* Hint: 0x61646d696e and 0x627970617373 are clues */
+String user = request.getParameter("username");
+String pass = request.getParameter("password");
+if(user.equals("admin") && pass.equals("bypass")){
+   out.print("Welcome");
+} else {
+   out.print("Denied");
+}
+                 </pre>
+                 <p class="useless-data">Extra clutter: 0xCAFEBABE, {HINT: 0x61646d696e}</p>
+                 <label for="username">Username:</label>
+                 <input type="text" class="username-input" placeholder="Enter username">
+                 <label for="password">Password:</label>
+                 <input type="text" class="password-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect credentials, please try again.</p>
+               </div>`,
+        answer: { username: "admin", password: "bypass" }
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Variant 5 (C#):</strong></p>
+                 <pre>
+// Useless data: 0xFEEDBEEF, {CSharpNoise}
+// Hidden hint: 0x61646d696e for user
+string username = Request.Form["username"];
+string password = Request.Form["password"];
+if(username == "admin" && password == "bypass") {
+    Response.Write("Access Granted");
+} else {
+    Response.Write("Access Denied");
+}
+                 </pre>
+                 <p class="useless-data">Clutter: 0xB16B00B5, Hint: 0x627970617373</p>
+                 <label for="username">Username:</label>
+                 <input type="text" class="username-input" placeholder="Enter username">
+                 <label for="password">Password:</label>
+                 <input type="text" class="password-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect credentials, please try again.</p>
+               </div>`,
+        answer: { username: "admin", password: "bypass" }
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Variant 6 (Ruby):</strong></p>
+                 <pre>
+# Useless info: 0xDEAD, {RUBYNOISE}
+user = params[:username]  # Hint: 0x61646d696e means 'admin'
+pass = params[:password]
+if user == "admin" && pass == "bypass"
+  render plain: "Welcome"
+else
+  render plain: "Denied"
+end
+                 </pre>
+                 <p class="useless-data">Extra hint: 0x627970617373 and random: [XYZ]</p>
+                 <label for="username">Username:</label>
+                 <input type="text" class="username-input" placeholder="Enter username">
+                 <label for="password">Password:</label>
+                 <input type="text" class="password-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect credentials, please try again.</p>
+               </div>`,
+        answer: { username: "admin", password: "bypass" }
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Variant 7 (ASP Classic):</strong></p>
+                 <pre>
+&lt;%
+// Useless data: 0xBADF00D, {ASP_HINT}
+// Hidden hint in comment: 0x61646d696e represents the user
+Dim username, password
+username = Request.Form("username")
+password = Request.Form("password")
+If username = "admin" And password = "bypass" Then
+   Response.Write("Access Granted")
+Else
+   Response.Write("Access Denied")
+End If
+%&gt;
+                 </pre>
+                 <p class="useless-data">Clutter: 0xCAFED00D, Hint: 0x627970617373</p>
+                 <label for="username">Username:</label>
+                 <input type="text" class="username-input" placeholder="Enter username">
+                 <label for="password">Password:</label>
+                 <input type="text" class="password-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect credentials, please try again.</p>
+               </div>`,
+        answer: { username: "admin", password: "bypass" }
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Variant 8 (Node.js):</strong></p>
+                 <pre>
+/*
+  Useless data: 0xBADC0FFEE0, {NODE_HINT}
+  Hidden: 0x61646d696e = admin
+*/
+let username = req.body.username;
+let password = req.body.password;
+if(username === "admin" && password === "bypass"){
+  res.send("Welcome");
+} else {
+  res.send("Denied");
+}
+                 </pre>
+                 <p class="useless-data">Extra Clutter: 0xDEAD10CC, Hint: 0x627970617373</p>
+                 <label for="username">Username:</label>
+                 <input type="text" class="username-input" placeholder="Enter username">
+                 <label for="password">Password:</label>
+                 <input type="text" class="password-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect credentials, please try again.</p>
+               </div>`,
+        answer: { username: "admin", password: "bypass" }
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Variant 9 (Perl):</strong></p>
+                 <pre>
+# Useless data: 0xABC123, {PERLNOISE}
+my $user = param('username'); # Hint: 0x61646d696e
+my $pass = param('password');
+if($user eq "admin" and $pass eq "bypass"){
+    print "Access Granted";
+} else {
+    print "Access Denied";
+}
+                 </pre>
+                 <p class="useless-data">Extra hint: 0x627970617373 and random: [NOISE]</p>
+                 <label for="username">Username:</label>
+                 <input type="text" class="username-input" placeholder="Enter username">
+                 <label for="password">Password:</label>
+                 <input type="text" class="password-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect credentials, please try again.</p>
+               </div>`,
+        answer: { username: "admin", password: "bypass" }
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Variant 10 (ASP.NET Razor - Pseudo):</strong></p>
+                 <pre>
+@{
+    // Useless info: 0xDEADBEEF, {NET_HINT}
+    // Hidden hint: 0x61646d696e equals admin
+    var username = Request.Form["username"];
+    var password = Request.Form["password"];
+}
+@if(username == "admin" && password == "bypass") {
+    <text>Access Granted</text>
+} else {
+    <text>Access Denied</text>
+}
+                 </pre>
+                 <p class="useless-data">Extra Clutter: 0xCAFEBABE, Hint: 0x627970617373</p>
+                 <label for="username">Username:</label>
+                 <input type="text" class="username-input" placeholder="Enter username">
+                 <label for="password">Password:</label>
+                 <input type="text" class="password-input" placeholder="Enter password">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect credentials, please try again.</p>
+               </div>`,
+        answer: { username: "admin", password: "bypass" }
+      }
+    ];
+    
+    // Randomize the challenges array.
+    challenges = shuffle(challenges);
+    let currentChallenge = 0;
+    let attemptCount = 0;
+    
+    // Function to display the current challenge.
+    function showChallenge(index) {
+      const container = document.getElementById("question-container");
+      container.innerHTML = challenges[index].html;
+      
+      // Attach event listener to the submit button.
+      document.querySelector(".submit-btn").addEventListener("click", function() {
+        const userInput = document.querySelector(".username-input").value.trim().toLowerCase();
+        const passInput = document.querySelector(".password-input").value.trim().toLowerCase();
+        attemptCount++;
+        if(userInput === challenges[index].answer.username && passInput === challenges[index].answer.password){
+          currentChallenge++;
+          if(currentChallenge < challenges.length){
+            showChallenge(currentChallenge);
+          } else {
+            document.getElementById("quiz-container").style.display = "none";
+            document.getElementById("congrats-card").style.display = "block";
+          }
+        } else {
+          document.querySelector(".error-message").style.display = "block";
+        }
+      });
+    }
+    
+    // Start challenge on "I am ready" button click.
+    document.getElementById("ready-btn").addEventListener("click", function(){
+      document.getElementById("instructions-card").style.display = "none";
+      document.getElementById("quiz-container").style.display = "block";
+      showChallenge(currentChallenge);
+    });
+  </script>
+</body>
+</html>

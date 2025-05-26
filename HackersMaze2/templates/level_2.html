@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HackersMaze Level 2 - Vulnerable Code Analysis Challenge</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+    
+    body {
+      background: #0d0d0d;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('hacker_bg.jpeg') no-repeat center center/cover;
+      filter: brightness(0.3);
+      animation: neon-glow 5s infinite alternate;
+      z-index: -1;
+    }
+    
+    @keyframes neon-glow {
+      0% { filter: brightness(0.3) hue-rotate(0deg); }
+      100% { filter: brightness(0.5) hue-rotate(45deg); }
+    }
+    
+    .card {
+      background: rgba(0, 0, 0, 0.85);
+      padding: 25px;
+      margin: 30px auto;
+      width: 90%;
+      max-width: 700px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+      text-align: center;
+    }
+    
+    h2 {
+      font-size: 2rem;
+      color: #00ffff;
+      background: linear-gradient(90deg, #ff00ff, #00ffff, #ff0000);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+    }
+    
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin: 10px 0;
+    }
+    
+    button {
+      background: transparent;
+      border: 2px solid #00ffff;
+      color: #00ffff;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+      margin-top: 20px;
+    }
+    
+    button:hover {
+      background: #00ffff;
+      color: #0d0d0d;
+    }
+    
+    .question {
+      border: 1px dashed #00ffff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      text-align: left;
+    }
+    
+    pre {
+      background: #1a1a1a;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      color: #00ffff;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+    
+    .useless-data {
+      font-style: italic;
+      color: #ff00ff;
+      opacity: 0.7;
+    }
+    
+    .junk {
+      font-size: 0.8rem;
+      color: #999;
+    }
+    
+    input.answer-input {
+      width: 90%;
+      padding: 8px;
+      margin-top: 10px;
+      border: 1px solid #00ffff;
+      border-radius: 5px;
+      background: #0d0d0d;
+      color: #00ffff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+    }
+    
+    label {
+      font-size: 1.1rem;
+      margin-top: 10px;
+      display: block;
+    }
+    
+    .error-message {
+      color: #ff3333;
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  
+  <!-- Instructions Card -->
+  <div id="instructions-card" class="card">
+    <h2>Level 2: Vulnerable Code Analysis Challenge</h2>
+    <p>
+      Your mission is to analyze the code snippet below and identify the hidden vulnerability.
+      The snippet is cluttered with extra, irrelevant data to simulate a noisy environment.
+      Focus on the core logic to determine the flaw.
+    </p>
+    <p>
+      Useless Data: 0xDEADBEEF, 0xCAFEBABE, 0xBADC0FFEE0DDF00D, {X9Z7}, [AB12], &#x1F4A3;
+    </p>
+    <button id="ready-btn">I am ready</button>
+  </div>
+  
+  <!-- Quiz Container -->
+  <div id="quiz-container" style="display:none;">
+    <div id="question-container" class="card"></div>
+  </div>
+  
+  <!-- Congratulations Card -->
+  <div id="congrats-card" class="card" style="display:none;">
+    <h2>Congratulations!</h2>
+    <p>You have successfully identified the vulnerabilities in all the code snippets.</p>
+    <p class="junk">Score: 100 (Bonus: +50 for under 2 attempts per snippet)</p>
+  </div>
+  
+  <script>
+    // Utility function: Shuffle array elements
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+    
+    // Array of 10 challenge objects for Vulnerable Code Analysis.
+    let challenges = [
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 1:</strong></p>
+                 <pre>
+#include &lt;stdio.h&gt;
+char buffer[50];
+int main() {
+    printf("Enter your name: ");
+    gets(buffer); // Dangerous function!
+    printf("Hello, %s\n", buffer);
+    return 0;
+}
+                 </pre>
+                 <p class="useless-data">Extra Info: 0xFADEB00C, 0xC0FFEE, Random: 3F2A1C</p>
+                 <p>Identify the vulnerability in the above code snippet.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "buffer overflow"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 2:</strong></p>
+                 <pre>
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+int main() {
+    char src[100] = "This is a very long string that exceeds the destination buffer.";
+    char dest[10];
+    strcpy(dest, src); // Unsafe copy!
+    printf("Copied string: %s\n", dest);
+    return 0;
+}
+                 </pre>
+                 <p class="useless-data">Misc: 0xB16B00B5, 0xDEAD10CC, Note: 0xFA1EDBEEF</p>
+                 <p>Identify the vulnerability in the above code snippet.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "buffer overflow"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 3:</strong></p>
+                 <pre>
+import os
+user_input = input("Enter command: ")
+os.system("ls " + user_input)  # Executes unsanitized input!
+                 </pre>
+                 <p class="useless-data">Random Data: 0xDEADBEEF, 0xABCDEF, 0x123456</p>
+                 <p>Identify the vulnerability in the above code snippet.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "command injection"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 4:</strong></p>
+                 <pre>
+import sqlite3
+conn = sqlite3.connect('example.db')
+cursor = conn.cursor()
+user_id = input("Enter user id: ")
+query = "SELECT * FROM users WHERE id = " + user_id  # Vulnerable query!
+cursor.execute(query)
+print(cursor.fetchall())
+                 </pre>
+                 <p class="useless-data">Extra: 0xCAFEBABE, 0xBADC0FFEE0, [XYZ123]</p>
+                 <p>Identify the vulnerability in the above code snippet.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "sql injection"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 5:</strong></p>
+                 <pre>
+#include &lt;stdio.h&gt;
+int main() {
+    char name[10] = "User";
+    char buffer[20];
+    sprintf(buffer, "Welcome %s", name); // May overflow if name is too long!
+    printf("%s\n", buffer);
+    return 0;
+}
+                 </pre>
+                 <p class="useless-data">Extra Bits: 0xBADF00D, 0xC0FFEE, 0xBEEFCAFE</p>
+                 <p>Identify the vulnerability in the above code snippet.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "buffer overflow"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 6:</strong></p>
+                 <pre>
+user_input = input("Enter expression: ")
+result = eval(user_input)  # Dangerous use of eval!
+print("Result:", result)
+                 </pre>
+                 <p class="useless-data">Miscellaneous: 0xDEADBEEF, 0xB16B00B5, 0xCAFEBABE</p>
+                 <p>Identify the vulnerability in the above code snippet.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, try again.</p>
+               </div>`,
+        answer: "code injection"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 7:</strong></p>
+                 <pre>
+&lt;?php
+$file = $_GET['page'];  // Unvalidated input!
+include($file);  // Vulnerable include!
+?&gt;
+                 </pre>
+                 <p class="useless-data">Random Junk: 0xABC123, 0xDEADBEEF, [NOISE]</p>
+                 <p>Identify the vulnerability in the above code snippet.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "file inclusion"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 8:</strong></p>
+                 <pre>
+#include &lt;iostream&gt;
+using namespace std;
+int main() {
+    int arr[5] = {1,2,3,4,5};
+    cout << arr[10] << endl;  // Out-of-bounds access!
+    return 0;
+}
+                 </pre>
+                 <p class="useless-data">Dummy Data: 0xFEEDFACE, 0x123456, 0xABCDEF</p>
+                 <p>Identify the vulnerability in the above code snippet.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "memory corruption"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 9:</strong></p>
+                 <pre>
+import re
+pattern = input("Enter regex: ")
+text = "Sample text for testing"
+if re.search(pattern, text):  # Unvalidated regex input!
+    print("Match found")
+                 </pre>
+                 <p class="useless-data">Extra Data: 0xDEADBEEF, 0xCAFED00D, Random: 0xBADC0FFEE0</p>
+                 <p>Identify the vulnerability in the above code snippet.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "regex denial of service"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 10:</strong></p>
+                 <pre>
+import pickle
+data = input("Enter pickled data: ")
+obj = pickle.loads(data)  # Unsafe deserialization!
+print(obj)
+                 </pre>
+                 <p class="useless-data">Useless Info: 0xABCDEF, 0x123456, [NOISE]</p>
+                 <p>Identify the vulnerability in the above code snippet.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "insecure deserialization"
+      }
+    ];
+    
+    // Shuffle the challenges array for randomness.
+    challenges = shuffle(challenges);
+    let currentChallenge = 0;
+    let attemptCount = 0;
+    
+    // Function to display the current challenge.
+    function showChallenge(index) {
+      const container = document.getElementById("question-container");
+      container.innerHTML = challenges[index].html;
+      
+      // Attach event listener to the submit button.
+      document.querySelector(".submit-btn").addEventListener("click", function() {
+        let userAnswer = document.querySelector(".answer-input").value.trim().toLowerCase();
+        attemptCount++;
+        // Check the answer (case-insensitive).
+        if(userAnswer === challenges[index].answer.toLowerCase()){
+          currentChallenge++;
+          if(currentChallenge < challenges.length){
+            showChallenge(currentChallenge);
+          } else {
+            document.getElementById("quiz-container").style.display = "none";
+            document.getElementById("congrats-card").style.display = "block";
+          }
+        } else {
+          document.querySelector(".error-message").style.display = "block";
+        }
+      });
+    }
+    
+    // Begin challenge on "I am ready" button click.
+    document.getElementById("ready-btn").addEventListener("click", function(){
+      document.getElementById("instructions-card").style.display = "none";
+      document.getElementById("quiz-container").style.display = "block";
+      showChallenge(currentChallenge);
+    });
+  </script>
+</body>
+</html>

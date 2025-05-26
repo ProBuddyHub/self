@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Levels - HackersMage</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@^2.2/dist/tailwind.min.css" rel="stylesheet">
+  
+  <!-- GSAP Animation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+    
+    body {
+      background: #0d0d0d;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      overflow-x: hidden;
+    }
+    
+    /* Background */
+    .bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('{{ url_for("static", filename="images/hacker_bg.jpeg") }}') no-repeat center center/cover;
+      filter: brightness(0.3);
+      animation: neon-glow 5s infinite alternate;
+      z-index: -1;
+    }
+    @keyframes neon-glow {
+      0% { filter: brightness(0.3) hue-rotate(0deg); }
+      100% { filter: brightness(0.5) hue-rotate(45deg); }
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 250px;
+      height: 100vh;
+      background: rgba(0,0,0,0.85);
+      padding: 100px 20px 20px 20px;
+      box-shadow: 0 0 15px rgba(0,255,255,0.8);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+    .sidebar.closed {
+      transform: translateX(-250px);
+    }
+    .sidebar h2 {
+      font-size: 1.75rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #00ffff;
+      background: linear-gradient(90deg, #ff00ff, #00ffff, #ff0000);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+      text-decoration: none;
+      color: #00ffff;
+      font-weight: bold;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .sidebar a:hover {
+      background: rgba(0,255,255,0.2);
+      box-shadow: 0 0 10px #00ffff;
+    }
+    .sidebar a span.icon {
+      margin-right: 10px;
+    }
+    .sidebar::-webkit-scrollbar {
+      width: 8px;
+    }
+    .sidebar::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.6);
+      border-radius: 10px;
+    }
+    .sidebar::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #00ffff, #ff00ff);
+      border-radius: 10px;
+    }
+    .sidebar::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #ff00ff, #00ffff);
+    }
+    
+    /* Hamburger Icon (Top Left) */
+    .hamburger {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      width: 35px;
+      height: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      cursor: pointer;
+      z-index: 1101;
+      transition: transform 0.3s ease;
+    }
+    .hamburger span {
+      display: block;
+      height: 4px;
+      background: #00ffff;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    .hamburger.active span:nth-child(1) {
+      transform: rotate(45deg) translate(6px, 6px);
+    }
+    .hamburger.active span:nth-child(2) {
+      opacity: 0;
+    }
+    .hamburger.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -6px);
+    }
+    @media (max-width: 768px) {
+      .hamburger { display: flex; }
+    }
+    
+    /* Main Content */
+    .content {
+      margin-left: 250px;
+      padding: 20px;
+      transition: margin-left 0.3s ease;
+    }
+    .content.full {
+      margin-left: 20px;
+    }
+    
+    .neon-text {
+      font-size: 2rem;
+      font-weight: bold;
+      background: linear-gradient(90deg, #ff00ff, #00ffff, #ff0000);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    /* Level Cards */
+    .level-card {
+      background: rgba(0,0,0,0.7);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,255,255,0.8);
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .level-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px #ff00ff;
+    }
+    .level-card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      color: #ff00ff;
+    }
+    .level-card p {
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Background -->
+  <div class="bg"></div>
+  
+  <!-- Hamburger Icon (Top Left) -->
+  <div class="hamburger" id="hamburger" onclick="toggleSidebar()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+  
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h2>HackersMage</h2>
+    <a href="{{ url_for('dashboard') }}"><span class="icon">🏠</span>Home</a>
+    <a href="{{ url_for('levels') }}"><span class="icon">🛠</span>Levels</a>
+    <a href="{{ url_for('leaderboard') }}"><span class="icon">🏆</span>Leaderboard</a>
+    <a href="{{ url_for('profile') }}"><span class="icon">👤</span>Profile</a>
+    <a href="{{ url_for('instructions') }}"><span class="icon">📜</span>Instructions</a>
+    <a href="{{ url_for('logout') }}"><span class="icon">🚪</span>Logout</a>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="content" id="content">
+    <h1 class="text-3xl font-bold mb-6 neon-text">Levels</h1>
+    
+    <!-- Set user_progress to progress if provided, otherwise default to 1 -->
+    {% set user_progress = progress|default(1) %}
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Level Card 1 -->
+      <div class="level-card">
+        <h3>Level 1</h3>
+        <p>Status: {% if user_progress >= 1 %}Unlocked{% else %}Locked{% endif %}</p>
+        <button class="mt-4 px-4 py-2 bg-gradient-to-r from-white to-black rounded text-black font-bold hover:shadow-lg transition">
+          {% if user_progress >= 1 %}
+          <a href="/level_1" class="start-btn">Start level</a>
+          {% else %}
+          Start level
+          {% endif %}
+        </button>
+      </div>
+      
+      <!-- Level Card 2 -->
+      <div class="level-card">
+        <h3>Level 2</h3>
+        <p>Status: {% if user_progress >= 2 %}Unlocked{% else %}Locked{% endif %}</p>
+        <button class="mt-4 px-4 py-2 bg-gradient-to-r from-white to-black rounded text-black font-bold hover:shadow-lg transition">
+          {% if user_progress >= 2 %}
+          <a href="/level_2" class="start-btn">Start level</a>
+          {% else %}
+          Start level
+          {% endif %}
+        </button>
+      </div>
+      
+      <!-- Level Card 3 -->
+      <div class="level-card">
+        <h3>Level 3</h3>
+        <p>Status: {% if user_progress >= 3 %}Unlocked{% else %}Locked{% endif %}</p>
+        <button class="mt-4 px-4 py-2 bg-gradient-to-r from-white to-black rounded text-black font-bold hover:shadow-lg transition">
+          {% if user_progress >= 3 %}
+          <a href="/level_3" class="start-btn">Start level</a>
+          {% else %}
+          Start level
+          {% endif %}
+        </button>
+      </div>
+      
+      <!-- Level Card 4 -->
+      <div class="level-card">
+        <h3>Level 4</h3>
+        <p>Status: {% if user_progress >= 4 %}Unlocked{% else %}Locked{% endif %}</p>
+        <button class="mt-4 px-4 py-2 bg-gradient-to-r from-white to-black rounded text-black font-bold hover:shadow-lg transition">
+          {% if user_progress >= 4 %}
+          <a href="/level_4" class="start-btn">Start level</a>
+          {% else %}
+          Start level
+          {% endif %}
+        </button>
+      </div>
+      
+      <!-- Level Card 5 -->
+      <div class="level-card">
+        <h3>Level 5</h3>
+        <p>Status: {% if user_progress >= 5 %}Unlocked{% else %}Locked{% endif %}</p>
+        <button class="mt-4 px-4 py-2 bg-gradient-to-r from-white to-black rounded text-black font-bold hover:shadow-lg transition">
+          {% if user_progress >= 5 %}
+          <a href="/level_5" class="start-btn">Start level</a>
+          {% else %}
+          Start level
+          {% endif %}
+        </button>
+      </div>
+      
+      <!-- Level Card 6 -->
+      <div class="level-card">
+        <h3>Level 6</h3>
+        <p>Status: {% if user_progress >= 6 %}Unlocked{% else %}Locked{% endif %}</p>
+        <button class="mt-4 px-4 py-2 bg-gradient-to-r from-white to-black rounded text-black font-bold hover:shadow-lg transition">
+          {% if user_progress >= 6 %}
+          <a href="/level_6" class="start-btn">Start level</a>
+          {% else %}
+          Start level
+          {% endif %}
+        </button>
+      </div>
+      
+      <!-- Level Card 7 -->
+      <div class="level-card">
+        <h3>Level 7</h3>
+        <p>Status: {% if user_progress >= 7 %}Unlocked{% else %}Locked{% endif %}</p>
+        <button class="mt-4 px-4 py-2 bg-gradient-to-r from-white to-black rounded text-black font-bold hover:shadow-lg transition">
+          {% if user_progress >= 7 %}
+          <a href="/level_7" class="start-btn">Start level</a>
+          {% else %}
+          Start level
+          {% endif %}
+        </button>
+      </div>
+      
+      <!-- Level Card 8 -->
+      <div class="level-card">
+        <h3>Level 8</h3>
+        <p>Status: {% if user_progress >= 8 %}Unlocked{% else %}Locked{% endif %}</p>
+        <button class="mt-4 px-4 py-2 bg-gradient-to-r from-white to-black rounded text-black font-bold hover:shadow-lg transition">
+          {% if user_progress >= 8 %}
+          <a href="/level_8" class="start-btn">Start level</a>
+          {% else %}
+          Start level
+          {% endif %}
+        </button>
+      </div>
+      
+      <!-- Level Card 9 -->
+      <div class="level-card">
+        <h3>Level 9</h3>
+        <p>Status: {% if user_progress >= 9 %}Unlocked{% else %}Locked{% endif %}</p>
+        <button class="mt-4 px-4 py-2 bg-gradient-to-r from-white to-black rounded text-black font-bold hover:shadow-lg transition">
+          {% if user_progress >= 9 %}
+          <a href="/level_9" class="start-btn">Start level</a>
+          {% else %}
+          Start level
+          {% endif %}
+        </button>
+      </div>
+      
+      <!-- Final Level Card (Level 10) -->
+      <div class="level-card">
+        <h3>Final Level</h3>
+        <p>Status: {% if user_progress >= 10 %}Unlocked{% else %}Locked{% endif %}</p>
+        <button class="mt-4 px-4 py-2 bg-gradient-to-r from-white to-black rounded text-black font-bold hover:shadow-lg transition">
+          {% if user_progress >= 10 %}
+          <a href="/level_10" class="start-btn">Start level</a>
+          {% else %}
+          Start level
+          {% endif %}
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- JavaScript -->
+  <script>
+    function toggleSidebar() {
+      var sidebar = document.getElementById('sidebar');
+      var content = document.getElementById('content');
+      var hamburger = document.getElementById('hamburger');
+      
+      if (!sidebar.classList.contains('closed')) {
+        sidebar.classList.add('closed');
+        content.classList.add('full');
+        hamburger.classList.remove('active');
+      } else {
+        sidebar.classList.remove('closed');
+        content.classList.remove('full');
+        hamburger.classList.add('active');
+      }
+    }
+    
+    // GSAP Animations for level cards and sidebar links
+    gsap.from(".level-card", { opacity: 0, y: 50, duration: 1, stagger: 0.3 });
+    gsap.from(".sidebar a", { opacity: 0, x: -50, duration: 1, stagger: 0.2 });
+  </script>
+</body>
+</html>

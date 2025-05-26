@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile - HackersMage</title>
+
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@^2.2/dist/tailwind.min.css" rel="stylesheet">
+  
+  <!-- GSAP Animation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+    body {
+      background: #0d0d0d;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Background */
+    .bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('{{ url_for("static", filename="images/hacker_bg.jpeg") }}') no-repeat center center/cover;
+      filter: brightness(0.3);
+      animation: neon-glow 5s infinite alternate;
+      z-index: -1;
+    }
+
+    @keyframes neon-glow {
+      0% { filter: brightness(0.3) hue-rotate(0deg); }
+      100% { filter: brightness(0.5) hue-rotate(45deg); }
+    }
+
+    /* Form Container */
+    .form-container {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,255,255,0.8);
+      max-width: 600px;
+      margin: auto;
+      transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+
+    .form-container:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 20px #ff00ff;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #00ffff;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid #ff00ff;
+      color: #fff;
+      transition: all 0.3s ease;
+    }
+
+    .form-input:focus {
+      border-color: #00ffff;
+      outline: none;
+      box-shadow: 0 0 10px #00ffff;
+    }
+
+    /* Neon Text */
+    .neon-text {
+      font-size: 2rem;
+      font-weight: bold;
+      background: linear-gradient(90deg, #ff00ff, #00ffff, #ff0000);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Submit Button */
+    .btn-submit {
+      background: #ff00ff;
+      color: white;
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .btn-submit:hover {
+      background: #00ffff;
+      box-shadow: 0 0 15px #00ffff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background -->
+  <div class="bg"></div>
+
+  <!-- Workspace -->
+  <div class="workspace" id="workspace">
+    <h1 class="text-3xl font-bold mb-6 neon-text">Edit Profile</h1>
+
+    <div class="form-container">
+      <form action="{{ url_for('edit_profile') }}" method="POST">
+        
+        <div class="form-group">
+          <label for="username" class="form-label">Username</label>
+          <input type="text" id="username" name="username" class="form-input" value="{{ user.username }}" required>
+        </div>
+
+        <div class="form-group">
+          <label for="branch" class="form-label">Branch</label>
+          <input type="text" id="branch" name="branch" class="form-input" value="{{ user.branch }}" required>
+        </div>
+
+        <div class="form-group">
+          <label for="year" class="form-label">Year</label>
+          <input type="text" id="year" name="year" class="form-input" value="{{ user.year }}" required>
+        </div>
+
+        <div class="form-group">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" id="email" name="email" class="form-input" value="{{ user.email }}" required>
+        </div>
+
+        <button type="submit" class="btn-submit">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // GSAP Animation
+    gsap.from(".form-container", { opacity: 0, y: 50, duration: 1 });
+  </script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard - HackersMage</title>
+  <style>
+    /* Global Reset & Base Styles */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: #0d0d0d;
+      color: #fff;
+      overflow-x: hidden;
+    }
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+    /* Background */
+    .bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%; 
+      height: 100%;
+      background: url('{{ url_for("static", filename="images/hacker_bg.jpeg") }}') no-repeat center center/cover;
+      filter: brightness(0.3);
+      animation: neon-glow 5s infinite alternate;
+      z-index: -1;
+    }
+    @keyframes neon-glow {
+      0% { filter: brightness(0.3) hue-rotate(0deg); }
+      100% { filter: brightness(0.5) hue-rotate(45deg); }
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 250px;
+      height: 100vh;
+      background: rgba(0,0,0,0.85);
+      padding: 100px 20px 20px 20px;  /* Increased top padding so content starts lower */
+      box-shadow: 0 0 15px rgba(0,255,255,0.8);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+    .sidebar.closed {
+      transform: translateX(-250px);
+    }
+    .sidebar h2 {
+      font-size: 1.75rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #00ffff;
+    }
+    .sidebar a {
+      display: block;
+      padding: 10px;
+      margin: 10px 0;
+      text-decoration: none;
+      color: #00ffff;
+      font-size: 1.1rem;
+      transition: background 0.3s;
+    }
+    .sidebar a:hover {
+      background: #333;
+      border-radius: 5px;
+    }
+    /* Using emojis for icons */
+    .sidebar a span.icon {
+      margin-right: 10px;
+    }
+    /* Custom Scrollbar for Sidebar */
+    .sidebar::-webkit-scrollbar {
+      width: 8px;
+    }
+    .sidebar::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.6);
+      border-radius: 10px;
+    }
+    .sidebar::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #00ffff, #ff00ff);
+      border-radius: 10px;
+    }
+    .sidebar::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #ff00ff, #00ffff);
+    }
+
+    /* Hamburger Icon (Top Left) */
+    .hamburger {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      width: 35px;
+      height: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      cursor: pointer;
+      z-index: 1101;
+      transition: transform 0.3s ease;
+    }
+    .hamburger span {
+      display: block;
+      height: 4px;
+      background: #00ffff;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    /* When active (sidebar open), show X */
+    .hamburger.active span:nth-child(1) {
+      transform: rotate(45deg) translate(6px, 6px);
+    }
+    .hamburger.active span:nth-child(2) {
+      opacity: 0;
+    }
+    .hamburger.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -6px);
+    }
+    @media (max-width: 768px) {
+      .hamburger { display: flex; }
+    }
+
+    /* Workspace (Content Frame) */
+    .workspace {
+      transition: margin-left 0.3s ease;
+      margin-left: 250px;
+      padding: 20px;
+    }
+    .workspace.full {
+      margin-left: 20px;
+    }
+
+    /* Workspace Frame */
+    .workspace-frame {
+      background: rgba(0,0,0,0.8);
+      border: 2px solid #00ffff;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+      box-shadow: 0 0 20px rgba(255,0,255,0.6);
+    }
+    .workspace-frame h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #00ffff;
+    }
+    .workspace-frame p {
+      line-height: 1.6;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Background -->
+  <div class="bg"></div>
+
+  <!-- Hamburger Icon (Top Left) -->
+  <div class="hamburger" id="hamburger" onclick="toggleSidebar()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h2>HackersMage</h2>
+    <a href="{{ url_for('dashboard') }}"><span class="icon">🏠</span>Home</a>
+    <a href="{{ url_for('levels') }}"><span class="icon">🛠</span>Levels</a>
+    <a href="{{ url_for('leaderboard') }}"><span class="icon">🏆</span>Leaderboard</a>
+    <a href="{{ url_for('profile') }}"><span class="icon">👤</span>Profile</a>
+    <a href="{{ url_for('instructions') }}"><span class="icon">📜</span>Instructions</a>
+    <a href="{{ url_for('logout') }}"><span class="icon">🚪</span>Logout</a>
+  </div>
+
+  <!-- Workspace / Content Frame -->
+  <div class="workspace" id="workspace">
+    <div class="workspace-frame">
+      <h1>Welcome to HackersMage – Not a Hacking Game, But a Cyber Defense Adventure!</h1>
+      <p>Hello, fellow innovators! In HackersMage, our mission isn’t to hack, but to learn how to protect ourselves from cyber attacks. We believe that real power lies in understanding security, and in this game, you'll discover the secrets of cyber defense.</p>
+      <p>But here’s the twist: one of the biggest challenges comes from using AI – especially ChatGPT and other advanced models. In our game, you'll get to experience the exciting world of AI firsthand. However, to truly win, you’ll need to master the art of prompt engineering. Yes, you heard it right! Crafting the perfect prompt is key. It’s about making ChatGPT do what you want – and when you nail it, you can even make it go wild during the toughest challenges.</p>
+      <p>At the final stage, the competition ramps up, pushing you to use all your skills to outsmart the AI. It’s a test of creativity, strategy, and quick thinking. And don’t worry – while the challenges are tough, the goal is always to learn, grow, and ultimately promote the creative and responsible use of AI.</p>
+      <p>So join us on this journey, sharpen your skills, and become a master of cyber defense and prompt engineering. Together, let's harness the power of ChatGPT and build a safer digital world!</p>
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      var sidebar = document.getElementById('sidebar');
+      var workspace = document.getElementById('workspace');
+      var hamburger = document.getElementById('hamburger');
+      
+      if (!sidebar.classList.contains('closed')) {
+        // Close the sidebar
+        sidebar.classList.add('closed');
+        workspace.classList.add('full'); // Expand workspace
+        hamburger.classList.remove('active'); // Hamburger shows three bars
+      } else {
+        // Open the sidebar
+        sidebar.classList.remove('closed');
+        workspace.classList.remove('full'); // Shift workspace right
+        hamburger.classList.add('active'); // Hamburger becomes X
+      }
+    }
+  </script>
+</body>
+</html>

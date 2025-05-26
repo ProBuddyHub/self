@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HackersMaze Level 4 - XSS Attack Challenge</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+    
+    body {
+      background: #0d0d0d;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('hacker_bg.jpeg') no-repeat center center/cover;
+      filter: brightness(0.3);
+      animation: neon-glow 5s infinite alternate;
+      z-index: -1;
+    }
+    
+    @keyframes neon-glow {
+      0% { filter: brightness(0.3) hue-rotate(0deg); }
+      100% { filter: brightness(0.5) hue-rotate(45deg); }
+    }
+    
+    .card {
+      background: rgba(0, 0, 0, 0.85);
+      padding: 25px;
+      margin: 30px auto;
+      width: 90%;
+      max-width: 700px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+      text-align: center;
+    }
+    
+    h2 {
+      font-size: 2rem;
+      color: #00ffff;
+      background: linear-gradient(90deg, #ff00ff, #00ffff, #ff0000);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+    }
+    
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin: 10px 0;
+    }
+    
+    button {
+      background: transparent;
+      border: 2px solid #00ffff;
+      color: #00ffff;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+      margin-top: 20px;
+    }
+    
+    button:hover {
+      background: #00ffff;
+      color: #0d0d0d;
+    }
+    
+    .question {
+      border: 1px dashed #00ffff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      text-align: left;
+    }
+    
+    pre {
+      background: #1a1a1a;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      color: #00ffff;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+    
+    .useless-data {
+      font-style: italic;
+      color: #ff00ff;
+      opacity: 0.7;
+    }
+    
+    .junk {
+      font-size: 0.8rem;
+      color: #999;
+    }
+    
+    input.answer-input {
+      width: 90%;
+      padding: 8px;
+      margin-top: 10px;
+      border: 1px solid #00ffff;
+      border-radius: 5px;
+      background: #0d0d0d;
+      color: #00ffff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+    }
+    
+    label {
+      font-size: 1.1rem;
+      margin-top: 10px;
+      display: block;
+    }
+    
+    .error-message {
+      color: #ff3333;
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  
+  <!-- Instructions Card -->
+  <div id="instructions-card" class="card">
+    <h2>Level 4: XSS Attack Challenge</h2>
+    <p>
+      Your mission is to review the code snippet below and identify the XSS vulnerability.
+      The snippet is interlaced with extra, irrelevant data to simulate a noisy environment.
+      Focus on the core issue and enter your answer.
+    </p>
+    <p>
+      Useless Data: 0xDEADBEEF, 0xCAFEBABE, 0xBADC0FFEE0DDF00D, {X9Z7}, [AB12], &#x1F4A3;
+    </p>
+    <button id="ready-btn">I am ready</button>
+  </div>
+  
+  <!-- Quiz Container -->
+  <div id="quiz-container" style="display:none;">
+    <div id="question-container" class="card"></div>
+  </div>
+  
+  <!-- Congratulations Card -->
+  <div id="congrats-card" class="card" style="display:none;">
+    <h2>Congratulations!</h2>
+    <p>You have successfully identified the vulnerability in all the scenarios.</p>
+    <p class="junk">Score: 100 (Bonus: +50 for under 2 attempts per snippet)</p>
+  </div>
+  
+  <script>
+    // Utility function: Shuffle array elements
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+    
+    // Array of 10 challenge objects for XSS Attack Prevention.
+    // Each snippet contains a vulnerable piece of code with extra distracting data.
+    // The expected answer for all variants is "xss".
+    let challenges = [
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 1 (PHP):</strong></p>
+                 <pre>
+&lt;?php
+// Extra junk: 0xDEADBEEF, {PH0S}
+echo "Welcome, " . $_GET['user']; // Vulnerable to XSS!
+?&gt;
+                 </pre>
+                 <p class="useless-data">Clutter: 0xCAFEBABE, [NOISE123]</p>
+                 <p>Identify the vulnerability in the above code snippet.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "xss"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 2 (JavaScript):</strong></p>
+                 <pre>
+&lt;script&gt;
+var input = window.location.search.substring(1);
+document.getElementById("content").innerHTML = input; // Vulnerability: unsanitized output!
+&lt;/script&gt;
+                 </pre>
+                 <p class="useless-data">Extra: 0xBADC0FFEE0, {RAND}, [ABC]</p>
+                 <p>Identify the vulnerability in the code snippet.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect, try again.</p>
+               </div>`,
+        answer: "xss"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 3 (HTML/PHP Mix):</strong></p>
+                 <pre>
+&lt;div&gt;
+Hello, &lt;!-- 0xDEAD, {XYZ} --&gt;
+&lt;span id="user"&gt;&lt;?php echo $_GET['name']; ?&gt;&lt;/span&gt;
+&lt;/div&gt;
+                 </pre>
+                 <p class="useless-data">Misc: 0xFACE, [IGNORE]</p>
+                 <p>What vulnerability is present in the above snippet?</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect, please try again.</p>
+               </div>`,
+        answer: "xss"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 4 (JavaScript - document.write):</strong></p>
+                 <pre>
+&lt;script&gt;
+var data = prompt("Enter data:");
+// Useless info: 0xABC123, {DATA}
+document.write(data); // Vulnerable to XSS!
+&lt;/script&gt;
+                 </pre>
+                 <p class="useless-data">Noise: 0xB16B00B5, [JUNK]</p>
+                 <p>Identify the vulnerability.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect, please try again.</p>
+               </div>`,
+        answer: "xss"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 5 (AngularJS):</strong></p>
+                 <pre>
+&lt;div ng-app=""&gt;
+  &lt;div&gt;Hello, {{userInput}}&lt;/div&gt; &lt;!-- No sanitization applied -->
+&lt;/div&gt;
+                 </pre>
+                 <p class="useless-data">Extra data: 0xFEEDFACE, {NGX}</p>
+                 <p>What is the vulnerability in the above AngularJS snippet?</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect, please try again.</p>
+               </div>`,
+        answer: "xss"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 6 (ASP Classic):</strong></p>
+                 <pre>
+&lt;% 
+' Extra: 0xBADF00D, {ASP}
+Response.Write("Welcome " & Request.QueryString("user")) ' Vulnerable to XSS!
+%&gt;
+                 </pre>
+                 <p class="useless-data">Clutter: 0xCAFED00D, [RANDOM]</p>
+                 <p>Identify the vulnerability.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect, please try again.</p>
+               </div>`,
+        answer: "xss"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 7 (JSP):</strong></p>
+                 <pre>
+&lt;%@ page contentType="text/html" %&gt;
+<html>
+<body>
+Hello, <%= request.getParameter("user") %> &lt;!-- Vulnerable to XSS! --&gt;
+</body>
+</html>
+                 </pre>
+                 <p class="useless-data">Misc: 0xC0FFEE, {JSP}, [NOISE]</p>
+                 <p>What vulnerability is present?</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect, please try again.</p>
+               </div>`,
+        answer: "xss"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 8 (ReactJS):</strong></p>
+                 <pre>
+// In a React component
+function Greeting() {
+  const userInput = window.location.hash.substring(1); // unsanitized!
+  return &lt;div dangerouslySetInnerHTML={{ __html: userInput }} /&gt;;
+}
+                 </pre>
+                 <p class="useless-data">Extra noise: 0xDEADC0DE, {RND}, [123]</p>
+                 <p>Identify the vulnerability.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect, please try again.</p>
+               </div>`,
+        answer: "xss"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 9 (Ruby on Rails):</strong></p>
+                 <pre>
+&lt;%# Extra: 0xBADA55, {RAILS} %&gt;
+&lt;p&gt;Welcome, &lt;%= params[:user] %&gt;&lt;/p&gt; &lt;!-- XSS vulnerability! --&gt;
+                 </pre>
+                 <p class="useless-data">Clutter: 0xCAFEBABE, [IGNORE]</p>
+                 <p>What vulnerability exists here?</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect, please try again.</p>
+               </div>`,
+        answer: "xss"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 10 (Plain HTML/JS):</strong></p>
+                 <pre>
+&lt;div id="output"&gt;
+  &lt;!-- Extra info: 0x123456, {HTML} --&gt;
+  &lt;script&gt;
+    document.write(decodeURIComponent(location.search.substr(1))); // XSS risk!
+  &lt;/script&gt;
+&lt;/div&gt;
+                 </pre>
+                 <p class="useless-data">Misc: 0xDEADBEEF, [NOISY]</p>
+                 <p>Identify the vulnerability.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter vulnerability">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect, please try again.</p>
+               </div>`,
+        answer: "xss"
+      }
+    ];
+    
+    // Shuffle the challenges array for randomness.
+    challenges = shuffle(challenges);
+    let currentChallenge = 0;
+    let attemptCount = 0;
+    
+    // Function to display the current challenge.
+    function showChallenge(index) {
+      const container = document.getElementById("question-container");
+      container.innerHTML = challenges[index].html;
+      
+      // Attach event listener to the submit button.
+      document.querySelector(".submit-btn").addEventListener("click", function() {
+        let userAnswer = document.querySelector(".answer-input").value.trim().toLowerCase();
+        attemptCount++;
+        // Check the answer (case-insensitive).
+        if(userAnswer === challenges[index].answer.toLowerCase()){
+          currentChallenge++;
+          if(currentChallenge < challenges.length){
+            showChallenge(currentChallenge);
+          } else {
+            document.getElementById("quiz-container").style.display = "none";
+            document.getElementById("congrats-card").style.display = "block";
+          }
+        } else {
+          document.querySelector(".error-message").style.display = "block";
+        }
+      });
+    }
+    
+    // Begin challenge on "I am ready" button click.
+    document.getElementById("ready-btn").addEventListener("click", function(){
+      document.getElementById("instructions-card").style.display = "none";
+      document.getElementById("quiz-container").style.display = "block";
+      showChallenge(currentChallenge);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HackersMaze Level 3 - SQL Injection Prevention Challenge</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+    
+    body {
+      background: #0d0d0d;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('hacker_bg.jpeg') no-repeat center center/cover;
+      filter: brightness(0.3);
+      animation: neon-glow 5s infinite alternate;
+      z-index: -1;
+    }
+    
+    @keyframes neon-glow {
+      0% { filter: brightness(0.3) hue-rotate(0deg); }
+      100% { filter: brightness(0.5) hue-rotate(45deg); }
+    }
+    
+    .card {
+      background: rgba(0, 0, 0, 0.85);
+      padding: 25px;
+      margin: 30px auto;
+      width: 90%;
+      max-width: 700px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+      text-align: center;
+    }
+    
+    h2 {
+      font-size: 2rem;
+      color: #00ffff;
+      background: linear-gradient(90deg, #ff00ff, #00ffff, #ff0000);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+    }
+    
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin: 10px 0;
+    }
+    
+    button {
+      background: transparent;
+      border: 2px solid #00ffff;
+      color: #00ffff;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+      margin-top: 20px;
+    }
+    
+    button:hover {
+      background: #00ffff;
+      color: #0d0d0d;
+    }
+    
+    .question {
+      border: 1px dashed #00ffff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      text-align: left;
+    }
+    
+    pre {
+      background: #1a1a1a;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      color: #00ffff;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+    
+    .useless-data {
+      font-style: italic;
+      color: #ff00ff;
+      opacity: 0.7;
+    }
+    
+    .junk {
+      font-size: 0.8rem;
+      color: #999;
+    }
+    
+    input.answer-input {
+      width: 90%;
+      padding: 8px;
+      margin-top: 10px;
+      border: 1px solid #00ffff;
+      border-radius: 5px;
+      background: #0d0d0d;
+      color: #00ffff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+    }
+    
+    label {
+      font-size: 1.1rem;
+      margin-top: 10px;
+      display: block;
+    }
+    
+    .error-message {
+      color: #ff3333;
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  
+  <!-- Instructions Card -->
+  <div id="instructions-card" class="card">
+    <h2>Level 3: SQL Injection Prevention Challenge</h2>
+    <p>
+      Your mission is to review the code snippet below and determine the correct method to fix the SQL injection vulnerability.
+      Beware of extra noise and distracting data. Focus on the core issue and think about the proper coding technique to secure the query.
+    </p>
+    <p>
+      Useless Data: 0xDEADBEEF, 0xCAFEBABE, 0xBADC0FFEE0DDF00D, {X9Z7}, [AB12], &#x1F4A3;
+    </p>
+    <button id="ready-btn">I am ready</button>
+  </div>
+  
+  <!-- Quiz Container -->
+  <div id="quiz-container" style="display:none;">
+    <div id="question-container" class="card"></div>
+  </div>
+  
+  <!-- Congratulations Card -->
+  <div id="congrats-card" class="card" style="display:none;">
+    <h2>Congratulations!</h2>
+    <p>You have successfully identified the method to prevent SQL injection in all the scenarios.</p>
+    <p class="junk">Score: 100 (Bonus: +50 for under 2 attempts per snippet)</p>
+  </div>
+  
+  <script>
+    // Utility function: Shuffle array elements
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+    
+    // Array of 10 challenge objects for SQL Injection Prevention.
+    // Each snippet contains a vulnerable SQL query with extraneous useless data.
+    // The expected answer is to secure the query using a parameterized query.
+    let challenges = [
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 1 (PHP):</strong></p>
+                 <pre>
+<?php
+// Useless data: 0xFADEB00C, {ABC123}
+$username = $_POST['username'];
+$query = "SELECT * FROM users WHERE username = '" . $username . "'"; // Vulnerable!
+$result = mysql_query($query);
+?>
+                 </pre>
+                 <p class="useless-data">Random Info: 0xB16B00B5, 0xDEAD10CC</p>
+                 <p>How would you fix the vulnerability in the above PHP code?</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter your fix">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "parameterized query"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 2 (PHP - MySQLi):</strong></p>
+                 <pre>
+<?php
+// Extra junk: 0xCAFEBABE, [XYZ999]
+$conn = new mysqli("localhost", "user", "pass", "db");
+$user_input = $_GET['id'];
+$sql = "SELECT * FROM accounts WHERE id = '" . $user_input . "'"; // Vulnerable!
+$result = $conn->query($sql);
+?>
+                 </pre>
+                 <p class="useless-data">Clutter: 0xBADC0FFEE0DDF00D, {NOISE}</p>
+                 <p>Identify the proper method to fix the above vulnerability.</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter your fix">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, try again.</p>
+               </div>`,
+        answer: "parameterized query"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 3 (Python with sqlite3):</strong></p>
+                 <pre>
+import sqlite3
+# Useless string: 0xDEADBEEF, random: {123ABC}
+conn = sqlite3.connect('test.db')
+cursor = conn.cursor()
+user_id = input("Enter user id: ")
+query = "SELECT * FROM users WHERE id = " + user_id  # Vulnerable!
+cursor.execute(query)
+print(cursor.fetchall())
+                 </pre>
+                 <p class="useless-data">Extra Data: 0xCAFED00D, [IGNORE]</p>
+                 <p>What method should be used to secure the SQL query?</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter your fix">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "parameterized query"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 4 (Python - vulnerable formatting):</strong></p>
+                 <pre>
+import sqlite3
+# Noise: 0xB16B00B5, {FOO}
+conn = sqlite3.connect('example.db')
+cursor = conn.cursor()
+name = input("Enter name: ")
+query = "SELECT * FROM customers WHERE name = '%s'" % name  # Vulnerable!
+cursor.execute(query)
+print(cursor.fetchall())
+                 </pre>
+                 <p class="useless-data">Extra junk: 0xDEAD10CC, [BAR]</p>
+                 <p>How can this SQL injection risk be prevented?</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter your fix">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, try again.</p>
+               </div>`,
+        answer: "parameterized query"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 5 (Java - JDBC):</strong></p>
+                 <pre>
+import java.sql.*;
+public class Test {
+  public static void main(String[] args) throws Exception {
+    // Noise: 0xABCDEF, {XYZ}
+    Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db", "user", "pass");
+    String userInput = args[0];
+    String query = "SELECT * FROM products WHERE id = '" + userInput + "'"; // Vulnerable!
+    Statement stmt = conn.createStatement();
+    ResultSet rs = stmt.executeQuery(query);
+  }
+}
+                 </pre>
+                 <p class="useless-data">Clutter: 0xCAFEBABE, [NOISE123]</p>
+                 <p>What is the secure method to run the query?</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter your fix">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect, please try again.</p>
+               </div>`,
+        answer: "parameterized query"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 6 (C#):</strong></p>
+                 <pre>
+using System;
+using System.Data.SqlClient;
+class Program {
+  static void Main() {
+    // Extra noise: 0xDEADBEEF, {C#JUNK}
+    string userInput = Console.ReadLine();
+    string query = "SELECT * FROM Users WHERE Username = '" + userInput + "'"; // Vulnerable!
+    SqlConnection conn = new SqlConnection("Data Source=.;Initial Catalog=db;Integrated Security=True");
+    SqlCommand cmd = new SqlCommand(query, conn);
+    conn.Open();
+    var reader = cmd.ExecuteReader();
+  }
+}
+                 </pre>
+                 <p class="useless-data">Extra: 0xCAFED00D, [IGNORE_THIS]</p>
+                 <p>What technique fixes the vulnerability?</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter your fix">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "parameterized query"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 7 (Node.js):</strong></p>
+                 <pre>
+const mysql = require('mysql');
+const connection = mysql.createConnection({host: 'localhost', user: 'user', password: 'pass', database: 'db'});
+// Noise: 0xBADC0FFEE0, {NODEJUNK}
+let userInput = process.argv[2];
+let query = "SELECT * FROM orders WHERE order_id = '" + userInput + "'"; // Vulnerable!
+connection.query(query, function (error, results) {
+  if (error) throw error;
+  console.log(results);
+});
+                 </pre>
+                 <p class="useless-data">Random: 0xDEAD10CC, [DISCARD]</p>
+                 <p>How should the query be secured?</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter your fix">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect, please try again.</p>
+               </div>`,
+        answer: "parameterized query"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 8 (Ruby):</strong></p>
+                 <pre>
+# Useless data: 0xCAFEBABE, {RUBYNOISE}
+require 'sqlite3'
+db = SQLite3::Database.new "test.db"
+user_input = gets.chomp
+query = "SELECT * FROM users WHERE name = '\#{user_input}'"  # Vulnerable!
+db.execute(query) do |row|
+  p row
+end
+                 </pre>
+                 <p class="useless-data">Extra clutter: 0xB16B00B5, [RUBYJUNK]</p>
+                 <p>Which method prevents SQL injection in this context?</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter your fix">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, try again.</p>
+               </div>`,
+        answer: "parameterized query"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 9 (PHP - PDO):</strong></p>
+                 <pre>
+<?php
+// Noise: 0xDEADBEEF, {PDOJUNK}
+$username = $_POST['username'];
+$password = $_POST['password'];
+// Vulnerable query without parameter binding:
+$sql = "SELECT * FROM users WHERE username = '$username' AND password = '$password'";
+$stmt = $pdo->query($sql);
+?>
+                 </pre>
+                 <p class="useless-data">Extra info: 0xCAFED00D, [IGNORE]</p>
+                 <p>What is the proper method to secure the SQL query?</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter your fix">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "parameterized query"
+      },
+      {
+        html: `<div class="question">
+                 <p><strong>Snippet 10 (Python - alternative):</strong></p>
+                 <pre>
+import sqlite3
+# Extra clutter: 0xBADC0FFEE0, {PYNOISE}
+conn = sqlite3.connect('sample.db')
+cursor = conn.cursor()
+user_input = input("Enter product id: ")
+query = "SELECT * FROM products WHERE id = " + user_input  # Vulnerable concatenation!
+cursor.execute(query)
+print(cursor.fetchall())
+                 </pre>
+                 <p class="useless-data">Extra junk: 0xCAFEBABE, [123XYZ]</p>
+                 <p>What method fixes the above vulnerability?</p>
+                 <label for="answer">Your Answer:</label>
+                 <input type="text" class="answer-input" placeholder="Enter your fix">
+                 <button class="submit-btn">Submit Answer</button>
+                 <p class="error-message" style="display:none;">Incorrect answer, please try again.</p>
+               </div>`,
+        answer: "parameterized query"
+      }
+    ];
+    
+    // Shuffle challenges for randomness.
+    challenges = shuffle(challenges);
+    let currentChallenge = 0;
+    let attemptCount = 0;
+    
+    // Function to display the current challenge.
+    function showChallenge(index) {
+      const container = document.getElementById("question-container");
+      container.innerHTML = challenges[index].html;
+      
+      // Attach event listener to the submit button.
+      document.querySelector(".submit-btn").addEventListener("click", function() {
+        let userAnswer = document.querySelector(".answer-input").value.trim().toLowerCase();
+        attemptCount++;
+        if(userAnswer === challenges[index].answer.toLowerCase()){
+          currentChallenge++;
+          if(currentChallenge < challenges.length){
+            showChallenge(currentChallenge);
+          } else {
+            document.getElementById("quiz-container").style.display = "none";
+            document.getElementById("congrats-card").style.display = "block";
+          }
+        } else {
+          document.querySelector(".error-message").style.display = "block";
+        }
+      });
+    }
+    
+    // Begin challenge on "I am ready" button click.
+    document.getElementById("ready-btn").addEventListener("click", function(){
+      document.getElementById("instructions-card").style.display = "none";
+      document.getElementById("quiz-container").style.display = "block";
+      showChallenge(currentChallenge);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Level 5 - Code Decryption</title>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #0ff;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+        }
+        .container {
+            margin: 50px auto;
+            width: 80%;
+            max-width: 800px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px #0ff;
+        }
+        .hidden {
+            display: none;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            background: #111;
+            color: #0f0;
+            border: 1px solid #0ff;
+            margin-bottom: 10px;
+        }
+        button {
+            background: #0ff;
+            color: #000;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+        #feedback {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        #timer {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #ff0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Introduction Card -->
+    <div id="introCard" class="container">
+        <h2>Welcome to Level 5</h2>
+        <p>Reverse engineer the encrypted message and find the secret key.</p>
+        <p><b>Bonus Timer:</b> Solve within 15 min & 3 attempts for extra points.</p>
+        <button onclick="startGame()">Start Level</button>
+    </div>
+
+    <!-- Game Section -->
+    <div id="gameContainer" class="container hidden">
+        <h2>Code Decryption Challenge</h2>
+        <p>Find the secret key from this encrypted message:</p>
+        <p><b id="encryptedMessage"></b></p>
+        <p id="timer">Bonus Timer: 15:00</p>
+        <input type="text" id="userInput" placeholder="Enter Secret Key"><br>
+        <button onclick="checkKey()">Submit</button>
+        <p id="feedback"></p>
+    </div>
+
+    <script>
+        let attempts = 0;
+        const maxAttempts = 3;
+        let bonusActive = true;
+        let timeLeft = 900; // 15 min in seconds
+        let timerInterval;
+        const secretKey = "NeoCipher42";
+        let encryptedText = btoa(secretKey.split("").reverse().join("")); // Encoding the key
+
+        document.getElementById("encryptedMessage").innerText = encryptedText;
+
+        function startGame() {
+            document.getElementById("introCard").classList.add("hidden");
+            document.getElementById("gameContainer").classList.remove("hidden");
+            startTimer();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                document.getElementById("timer").innerText = `Bonus Timer: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                timeLeft--;
+
+                if (timeLeft < 0) {
+                    clearInterval(timerInterval);
+                    bonusActive = false;
+                    document.getElementById("timer").innerText = "Bonus Time Over!";
+                }
+            }, 1000);
+        }
+
+        function checkKey() {
+            const userInput = document.getElementById("userInput").value;
+            attempts++;
+
+            if (userInput === secretKey) {
+                let scoreMsg = bonusActive && attempts <= maxAttempts ? "✅ Bonus Points Awarded!" : "✅ Standard Points Awarded!";
+                document.getElementById("feedback").innerHTML = `Correct! You cracked the code! ${scoreMsg}`;
+                clearInterval(timerInterval);
+            } else {
+                if (attempts >= maxAttempts) {
+                    bonusActive = false;
+                    document.getElementById("feedback").innerHTML = "❌ No Bonus! But you can still play for standard points.";
+                } else {
+                    document.getElementById("feedback").innerHTML = `❌ Incorrect! Attempts left: ${maxAttempts - attempts}`;
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>
